@@ -19,7 +19,11 @@ public record ProjTerm(@NotNull Term tup, int ix) implements Term {
   }
 
   @Contract(pure = true) @Override public @NotNull Decision whnf() {
-    if (tup instanceof TupTerm) return Decision.NO;
-    else return tup.whnf();
+    return Decision.NO;
+  }
+
+  @Contract(pure = true) @Override public @NotNull Decision neutral() {
+    if (tup instanceof TupTerm) return Decision.YES;
+    else return Decision.NO;
   }
 }

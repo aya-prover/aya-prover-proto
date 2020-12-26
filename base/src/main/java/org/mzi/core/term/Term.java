@@ -27,6 +27,7 @@ public interface Term extends CoreTerm {
   <P, R> R accept(@NotNull Visitor<P, R> visitor, P p);
   <P, Q, R> R accept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q);
   @Contract(pure = true) @NotNull Decision whnf();
+  @Contract(pure = true) @NotNull Decision neutral();
 
   default @NotNull Term subst(@NotNull Var var, @NotNull Term term) {
     return subst(new Substituter.TermSubst(var, term));

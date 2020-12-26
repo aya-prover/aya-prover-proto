@@ -21,4 +21,9 @@ public record LamTerm(@NotNull Tele telescope, @NotNull Term body) implements Te
   @Override public @NotNull Decision whnf() {
     return Decision.YES;
   }
+
+  @Override
+  public @NotNull Decision neutral() {
+    return Decision.NO;
+  }
 }

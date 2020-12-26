@@ -23,4 +23,8 @@ public record UnivTerm(@NotNull Sort sort) implements Term {
   @Override public @NotNull Decision whnf() {
     return Decision.YES;
   }
+
+  @Override public @NotNull Decision neutral() {
+    return Decision.NO;
+  }
 }

@@ -68,8 +68,12 @@ public sealed interface AppTerm extends Term {
     }
 
     @Contract(pure = true) @Override public @NotNull Decision whnf() {
-      // TODO[xyr]: after adding inductive datatypes, we need to check if the function pattern matches.
       return Decision.NO;
+    }
+
+    @Contract(pure = true) @Override public @NotNull Decision neutral() {
+      return Decision.NO; // TODO[xyr]: This is problematic. In mutual recursions this should be YES.
+                          //  Also, after adding inductive datatypes, we need to check if the fn pattern matches.
     }
 
     @Contract(value = " -> new", pure = true)
@@ -83,8 +87,12 @@ public sealed interface AppTerm extends Term {
     @NotNull Arg<? extends Term> arg
   ) implements AppTerm {
     @Contract(pure = true) @Override public @NotNull Decision whnf() {
-      if (fn() instanceof LamTerm) return Decision.NO;
-      return fn().whnf();
+      return Decision.NO;
+    }
+
+    @Contract(pure = true) @Override public @NotNull Decision neutral() {
+      if (fn instanceof LamTerm) return Decision.NO;
+      else return Decision.YES;
     }
 
     @Override public <P, R> R accept(@NotNull Visitor<P, R> visitor, P p) {
@@ -137,6 +145,10 @@ public sealed interface AppTerm extends Term {
     }
 
     @Contract(pure = true) @Override public @NotNull Decision whnf() {
+      return Decision.MAYBE;
+    }
+
+    @Contract(pure = true) @Override public @NotNull Decision neutral() {
       return Decision.MAYBE;
     }
   }

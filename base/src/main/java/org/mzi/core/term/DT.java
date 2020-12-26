@@ -16,6 +16,10 @@ public record DT(@NotNull DTKind kind, @NotNull Tele telescope, @NotNull Term la
     return Decision.YES;
   }
 
+  @Override @Contract(pure = true) public @NotNull Decision neutral() {
+    return Decision.NO;
+  }
+
   @Override public <P, R> R accept(@NotNull Visitor<P, R> visitor, P p) {
     return visitor.visitDT(this, p);
   }

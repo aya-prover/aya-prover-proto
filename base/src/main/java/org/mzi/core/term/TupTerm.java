@@ -21,4 +21,8 @@ public record TupTerm(@NotNull ImmutableSeq<Term> items) implements Term {
   @Override public @NotNull Decision whnf() {
     return Decision.YES;
   }
+
+  @Override public @NotNull Decision neutral() {
+    return Decision.NO;
+  }
 }

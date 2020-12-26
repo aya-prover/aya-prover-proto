@@ -25,6 +25,10 @@ public record RefTerm(@NotNull Var var) implements Term {
    * in which the term is a WHNF.
    */
   @Override public @NotNull Decision whnf() {
+    return Decision.NO;
+  }
+
+  @Override public @NotNull Decision neutral() {
     return Decision.YES;
   }
 }
