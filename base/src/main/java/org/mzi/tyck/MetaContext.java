@@ -16,12 +16,12 @@ public record MetaContext(
   @NotNull Reporter reporter,
   LevelEqn.@NotNull Set levelEqns,
   MutableMap<AppTerm.HoleApp, Term> solutions
-) {
+) implements Reporter {
   public MetaContext(@NotNull Reporter reporter) {
     this(reporter, new LevelEqn.Set(Buffer.of(), Buffer.of()), new MutableHashMap<>());
   }
 
-  public void report(@NotNull Problem problem) {
+  @Override public void report(@NotNull Problem problem) {
     reporter.report(problem);
   }
 }

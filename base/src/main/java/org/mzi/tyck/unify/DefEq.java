@@ -10,6 +10,8 @@ import org.glavo.kala.collection.mutable.MutableMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mzi.api.error.Problem;
+import org.mzi.api.error.Reporter;
 import org.mzi.api.ref.Var;
 import org.mzi.api.util.NormalizeMode;
 import org.mzi.concrete.Expr;
@@ -29,11 +31,15 @@ import java.util.stream.IntStream;
  * @implNote Do not call <code>expr.accept(this, bla)</code> directly.
  * Instead, invoke {@link DefEq#compare(Term, Term, Term)} to do so.
  */
-public abstract class DefEq implements Term.BiVisitor<@NotNull Term, @Nullable Term, @NotNull Boolean> {
+public abstract class DefEq implements Term.BiVisitor<@NotNull Term, @Nullable Term, @NotNull Boolean>, Reporter {
   protected @NotNull Ordering ord;
   protected final @NotNull MetaContext metaContext;
   protected final @NotNull MutableMap<@NotNull Var, @NotNull Var> varSubst = new MutableHashMap<>();
   public Expr expr;
+
+  @Override public void report(@NotNull Problem problem) {
+    metaContext.report(problem);
+  }
 
   public boolean compare(@NotNull Term lhs, @NotNull Term rhs, @Nullable Term type) {
     if (lhs == rhs) return true;

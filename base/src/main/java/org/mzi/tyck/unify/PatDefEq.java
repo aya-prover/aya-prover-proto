@@ -57,7 +57,7 @@ public class PatDefEq extends DefEq {
   public @NotNull Boolean visitHole(AppTerm.@NotNull HoleApp lhs, @NotNull Term rhs, @Nullable Term type) {
     var solved = extract(lhs.args(), rhs);
     if (solved == null) {
-      metaContext.report(new HoleBadSpineError(lhs, expr));
+      report(new HoleBadSpineError(lhs, expr));
       return false;
     }
     var solution = metaContext.solutions().getOption(lhs);

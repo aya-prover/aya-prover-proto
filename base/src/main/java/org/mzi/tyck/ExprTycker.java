@@ -10,6 +10,7 @@ import org.glavo.kala.collection.mutable.MutableMap;
 import org.glavo.kala.ref.Ref;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mzi.api.error.Problem;
 import org.mzi.api.error.Reporter;
 import org.mzi.api.ref.Var;
 import org.mzi.api.util.MziBreakingException;
@@ -28,9 +29,13 @@ import org.mzi.util.Ordering;
 
 import java.util.HashMap;
 
-public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
+public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result>, Reporter {
   public final @NotNull MetaContext metaContext;
   public final @NotNull MutableMap<Var, Term> localCtx;
+
+  @Override public void report(@NotNull Problem problem) {
+    metaContext.report(problem);
+  }
 
   public ExprTycker(@NotNull Reporter reporter) {
     this(new MetaContext(reporter));
@@ -91,7 +96,7 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
   }
 
   private <T> T wantButNo(@NotNull Expr expr, Term term, String expectedText) {
-    metaContext.report(new BadTypeError(expr, Doc.plain(expectedText), term));
+    report(new BadTypeError(expr, Doc.plain(expectedText), term));
     throw new TyckerException();
   }
 

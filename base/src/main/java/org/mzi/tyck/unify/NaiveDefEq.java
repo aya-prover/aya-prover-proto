@@ -21,14 +21,14 @@ public class NaiveDefEq extends DefEq {
   @Override
   public @NotNull Boolean visitHole(AppTerm.@NotNull HoleApp lhs, @NotNull Term preRhs, @Nullable Term type) {
     if (!lhs.argsBuf().isEmpty()) {
-      metaContext.report(new HoleAppWarn(lhs, expr));
+      report(new HoleAppWarn(lhs, expr));
       return false;
     }
     var solution = metaContext.solutions().getOption(lhs);
     if (solution.isDefined()) return compare(solution.get(), preRhs, type);
     if (preRhs instanceof AppTerm.HoleApp rhs) {
       if (!rhs.args().isEmpty()) {
-        metaContext.report(new HoleAppWarn(lhs, expr));
+        report(new HoleAppWarn(lhs, expr));
         return false;
       }
       if (lhs.var() == rhs.var()) return true;
