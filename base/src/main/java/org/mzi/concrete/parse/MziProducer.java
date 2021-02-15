@@ -501,7 +501,7 @@ public final class MziProducer extends MziBaseVisitor<Object> {
     return new Stmt.ModuleStmt(
       sourcePosOf(ctx),
       ctx.ID().getText(),
-      ImmutableSeq.from(ctx.program().stmt()).map(this::visitStmt)
+      ctx.stmt().stream().map(this::visitStmt).collect(ImmutableSeq.factory())
     );
   }
 
