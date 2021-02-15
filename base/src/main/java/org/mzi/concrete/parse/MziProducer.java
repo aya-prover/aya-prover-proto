@@ -72,6 +72,8 @@ public final class MziProducer extends MziBaseVisitor<Object> {
     if (cmd != null) return visitCmd(cmd);
     var decl = ctx.decl();
     if (decl != null) return visitDecl(decl);
+    var module = ctx.module();
+    if (module != null) return visitModule(module);
     throw new IllegalArgumentException(ctx.getClass() + ": " + ctx.getText());
   }
 

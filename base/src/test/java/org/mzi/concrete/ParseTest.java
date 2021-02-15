@@ -142,6 +142,11 @@ public class ParseTest {
     ));
   }
 
+  @Test
+  public void issue141() {
+    assertTrue(MziProducer.parseStmt("\\module tony {}") instanceof Stmt.ModuleStmt);
+  }
+
   private void parseCmd(@Language("TEXT") String code) {
     assertTrue(MziProducer.parseStmt(code) instanceof Stmt.CmdStmt);
   }
