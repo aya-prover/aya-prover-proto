@@ -1,5 +1,5 @@
 // Copyright (c) 2020-2021 Yinsen (Tesla) Zhang.
-// Use of this source code is governed by the Apache-2.0 license that can be found in the LICENSE file.
+// Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 package org.mzi.concrete.resolve.context;
 
 import org.glavo.kala.collection.Seq;
@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import org.mzi.api.error.Reporter;
 import org.mzi.api.error.SourcePos;
 import org.mzi.api.ref.Var;
-import org.mzi.ref.LocalVar;
 
 /**
  * Introduces a locally bound variable to the context.
@@ -19,7 +18,7 @@ import org.mzi.ref.LocalVar;
 public record BindContext(
   @NotNull Context parent,
   @NotNull String name,
-  @NotNull LocalVar ref
+  @NotNull Var ref
 ) implements Context {
   @Override
   public @NotNull Context parent() {

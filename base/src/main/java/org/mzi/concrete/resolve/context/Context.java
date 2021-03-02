@@ -1,5 +1,5 @@
 // Copyright (c) 2020-2021 Yinsen (Tesla) Zhang.
-// Use of this source code is governed by the Apache-2.0 license that can be found in the LICENSE file.
+// Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 package org.mzi.concrete.resolve.context;
 
 import org.glavo.kala.collection.Seq;
@@ -15,7 +15,6 @@ import org.mzi.api.util.MziBreakingException;
 import org.mzi.concrete.resolve.error.QualifiedNameNotFoundError;
 import org.mzi.concrete.resolve.error.ShadowingWarn;
 import org.mzi.concrete.resolve.error.UnqualifiedNameNotFoundError;
-import org.mzi.ref.LocalVar;
 
 /**
  * @author re-xyr
@@ -73,7 +72,7 @@ public interface Context {
     } else return ref;
   }
 
-  default @NotNull BindContext bind(@NotNull String name, @NotNull LocalVar ref, @NotNull SourcePos sourcePos) {
+  default @NotNull BindContext bind(@NotNull String name, @NotNull Var ref, @NotNull SourcePos sourcePos) {
     if (getUnqualifiedMaybe(name, sourcePos) != null) {
       reporter().report(new ShadowingWarn(name, sourcePos));
     }

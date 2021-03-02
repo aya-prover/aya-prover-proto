@@ -53,6 +53,8 @@ public record StmtTycker(
     var tele = checkTele(checker, decl.telescope)
       .collect(ImmutableSeq.factory());
     final var result = checker.checkExpr(decl.result, UnivTerm.OMEGA).wellTyped();
+    // Mock
+    new DataDef(decl.ref, tele, result, Buffer.of(), Buffer.of(), ImmutableHashMap.empty());
     decl.body.accept(new Decl.DataBody.Visitor<Unit, Unit>() {
       @Override public Unit visitCtor(Decl.DataBody.@NotNull Ctors ctors, Unit unit) {
         ctors.ctors().forEach(ctor -> {

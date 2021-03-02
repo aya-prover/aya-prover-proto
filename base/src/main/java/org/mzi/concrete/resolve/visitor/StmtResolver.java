@@ -42,10 +42,11 @@ public final class StmtResolver implements Stmt.Visitor<Unit, Unit> {
     var local = ExprResolver.INSTANCE.resolveParams(decl.telescope, decl.ctx);
     decl.telescope = local._1;
     decl.result = decl.result.resolve(local._2);
+    var dataCtx = local._2;
     return decl.body.accept(new Decl.DataBody.Visitor<>() {
       @Override public Unit visitCtor(Decl.DataBody.@NotNull Ctors ctors, Unit unit) {
         for (var ctor : ctors.ctors()) {
-          var ctorLocal = ExprResolver.INSTANCE.resolveParams(ctor.telescope, local._2);
+          var ctorLocal = ExprResolver.INSTANCE.resolveParams(ctor.telescope, dataCtx);
           ctor.telescope = ctorLocal._1;
           ctor.clauses = ctor.clauses.stream()
             .map(clause -> clause.mapTerm(e -> e.resolve(ctorLocal._2)))
