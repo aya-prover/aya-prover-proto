@@ -8,45 +8,58 @@ import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatUnify;
 import org.aya.core.term.AppTerm;
 import org.aya.core.term.Term;
+import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
-import org.glavo.kala.collection.mutable.Buffer;
-import org.glavo.kala.tuple.Unit;
+import org.glavo.kala.tuple.Tuple2;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ice1000
  */
-public record PatClassifier(
-  @NotNull ImmutableSeq<@NotNull TypedClause> initialClauses,
-  @NotNull Buffer<@NotNull ImmutableSeq<@NotNull TypedClause>> groups
-) implements Pat.Visitor<Term, Unit> {
-  @Override public Unit visitBind(Pat.@NotNull Bind bind, Term term) {
-    return Unit.unit();
+public final class PatClassifier implements Pat.Visitor<
+  Tuple2<
+    @NotNull ImmutableSeq<PatClassifier.@NotNull TypedClause>,
+    Term>,
+  SeqLike<@NotNull ImmutableSeq<PatClassifier.@NotNull TypedClause>>> {
+  @Override
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedClause>> visitBind(
+    Pat.@NotNull Bind bind,
+    Tuple2<ImmutableSeq<TypedClause>, Term> clausesType
+  ) {
+    return ImmutableSeq.empty();
   }
 
-  @Override public Unit visitTuple(Pat.@NotNull Tuple tuple, Term term) {
+  @Override
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedClause>> visitTuple(
+    Pat.@NotNull Tuple tuple,
+    Tuple2<ImmutableSeq<TypedClause>, Term> clausesType
+  ) {
     throw new UnsupportedOperationException();
   }
 
-  @Override public Unit visitCtor(Pat.@NotNull Ctor ctor, Term term) {
-    if (!(term.normalize(NormalizeMode.WHNF) instanceof AppTerm.DataCall data)) {
-      var s = term.toDoc().renderWithPageWidth(100);
+  @Override
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedClause>> visitCtor(
+    Pat.@NotNull Ctor ctor,
+    Tuple2<ImmutableSeq<TypedClause>, Term> clausesType
+  ) {
+    if (!(clausesType._2.normalize(NormalizeMode.WHNF) instanceof AppTerm.DataCall data)) {
+      var s = clausesType._2.toDoc().renderWithPageWidth(100);
       throw new IllegalArgumentException(s + " is not a dataCall");
     }
-    data.availableCtors()
+    var available = data.availableCtors().toImmutableSeq();
+    var groups = available
       .filter(c -> c.ref() != ctor.ref())
-      .forEach(otherCtor -> {
+      .map(otherCtor -> {
         var newPat = otherCtor.freshPat(ctor.explicit());
-        var filtered = initialClauses.map(typedClause -> {
+        return clausesType._1.map(typedClause -> {
           var clause = typedClause.clauses;
           var subst = PatUnify.unify(clause.patterns().first(), newPat);
           if (subst.isEmpty()) return null;
           return typedClause.inst(newPat.toTerm());
         }).filterNotNull();
-        groups.append(filtered);
       });
     // TODO[ice]: current ctor recursion
-    return Unit.unit();
+    return groups.view();
   }
 
   /**
