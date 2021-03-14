@@ -28,6 +28,12 @@ public final class PatClassifier implements Pat.Visitor<
   SeqLike<@NotNull ImmutableSeq<PatClassifier.@NotNull TypedPats>>> {
   private static final @NotNull PatClassifier INSTANCE = new PatClassifier();
 
+  /**
+   * @param pat       the pattern to split
+   * @param type      of pat
+   * @param totalPats all the other patterns to classify
+   * @apiNote The first returned group is the group that matches the current split pattern.
+   */
   public static @NotNull ImmutableSeq<@NotNull ImmutableSeq<@NotNull TypedPats>>
   classify(@NotNull Pat pat, @NotNull SeqLike<@NotNull TypedPats> totalPats, @NotNull Term type) {
     return pat.accept(PatClassifier.INSTANCE, Tuple.of(totalPats, type))
@@ -42,7 +48,7 @@ public final class PatClassifier implements Pat.Visitor<
     Pat.@NotNull Bind bind,
     Tuple2<SeqLike<TypedPats>, Term> clausesType
   ) {
-    return ImmutableSeq.empty();
+    return ImmutableSeq.of(clausesType._1.toImmutableSeq());
   }
 
   @Override
@@ -50,7 +56,7 @@ public final class PatClassifier implements Pat.Visitor<
     Pat.@NotNull Tuple tuple,
     Tuple2<SeqLike<TypedPats>, Term> clausesType
   ) {
-    throw new UnsupportedOperationException();
+    return ImmutableSeq.of(clausesType._1.toImmutableSeq());
   }
 
   @Override
