@@ -13,6 +13,7 @@ import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.tuple.Tuple2;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author ice1000
@@ -48,26 +49,32 @@ public final class PatClassifier implements Pat.Visitor<
       throw new IllegalArgumentException(s + " is not a dataCall");
     }
     var available = data.availableCtors()
-      .map(pat -> pat.freshPat(ctor.explicit()))
       .toImmutableSeq();
     var groups = available
       .view()
       .filter(c -> c.ref() != ctor.ref())
+      .map(pat -> pat.freshPat(ctor.explicit()))
       .map(newPat -> clausesType._1
-        .map(typedClause -> PatUnify
-          .unify(typedClause.clauses.patterns().first(), newPat)
-          .map(subst -> typedClause.inst(newPat.toTerm(), subst))
-          .getOrNull())
-        .filterNotNull());
+        .view()
+        .map(typedClause -> unifyPattern(newPat, typedClause))
+        .filterNotNull()
+        .toImmutableSeq());
+    // TODO[ice]: indexed inductive type
+    assert available.anyMatch(c -> c.ref() == ctor.ref());
     /*
-    var subclass = available
+    var subclass = clausesType._1
       .view()
-      .filter(c -> c.ref() == ctor.ref())
-      .map(newPat -> {
-      });
+      .map(typedClause -> unifyPattern());
     */
 
     return groups;
+  }
+
+  private @Nullable TypedClause unifyPattern(Pat.Ctor newPat, @NotNull TypedClause typedClause) {
+    return PatUnify
+      .unify(typedClause.clauses.patterns().first(), newPat)
+      .map(subst -> typedClause.inst(newPat.toTerm(), subst))
+      .getOrNull();
   }
 
   /**
@@ -78,7 +85,6 @@ public final class PatClassifier implements Pat.Visitor<
     Def.@NotNull Signature signature
   ) {
     public @NotNull TypedClause inst(@NotNull Term inst, @NotNull Substituter.TermSubst subst) {
-      var clauses = new Pat.Clause(this.clauses.patterns().drop(1), this.clauses.expr());
       return new TypedClause(clauses, signature.inst(inst).subst(subst));
     }
   }
