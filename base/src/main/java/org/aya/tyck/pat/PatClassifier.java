@@ -8,6 +8,7 @@ import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatUnify;
 import org.aya.core.term.AppTerm;
 import org.aya.core.term.Term;
+import org.aya.core.visitor.Substituter;
 import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.tuple.Tuple2;
@@ -46,20 +47,27 @@ public final class PatClassifier implements Pat.Visitor<
       var s = clausesType._2.toDoc().renderWithPageWidth(100);
       throw new IllegalArgumentException(s + " is not a dataCall");
     }
-    var available = data.availableCtors().toImmutableSeq();
+    var available = data.availableCtors()
+      .map(pat -> pat.freshPat(ctor.explicit()))
+      .toImmutableSeq();
     var groups = available
+      .view()
       .filter(c -> c.ref() != ctor.ref())
-      .map(otherCtor -> {
-        var newPat = otherCtor.freshPat(ctor.explicit());
-        return clausesType._1.map(typedClause -> {
-          var clause = typedClause.clauses;
-          var subst = PatUnify.unify(clause.patterns().first(), newPat);
-          if (subst.isEmpty()) return null;
-          return typedClause.inst(newPat.toTerm());
-        }).filterNotNull();
+      .map(newPat -> clausesType._1
+        .map(typedClause -> PatUnify
+          .unify(typedClause.clauses.patterns().first(), newPat)
+          .map(subst -> typedClause.inst(newPat.toTerm(), subst))
+          .getOrNull())
+        .filterNotNull());
+    /*
+    var subclass = available
+      .view()
+      .filter(c -> c.ref() == ctor.ref())
+      .map(newPat -> {
       });
-    // TODO[ice]: current ctor recursion
-    return groups.view();
+    */
+
+    return groups;
   }
 
   /**
@@ -69,9 +77,9 @@ public final class PatClassifier implements Pat.Visitor<
     Pat.@NotNull Clause clauses,
     Def.@NotNull Signature signature
   ) {
-    public @NotNull TypedClause inst(@NotNull Term inst) {
+    public @NotNull TypedClause inst(@NotNull Term inst, @NotNull Substituter.TermSubst subst) {
       var clauses = new Pat.Clause(this.clauses.patterns().drop(1), this.clauses.expr());
-      return new TypedClause(clauses, signature.inst(inst));
+      return new TypedClause(clauses, signature.inst(inst).subst(subst));
     }
   }
 }
