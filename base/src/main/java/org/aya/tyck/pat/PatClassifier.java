@@ -2,11 +2,9 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 package org.aya.tyck.pat;
 
-import org.aya.api.util.NormalizeMode;
 import org.aya.core.def.Def;
 import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatUnify;
-import org.aya.core.term.AppTerm;
 import org.aya.core.term.Term;
 import org.aya.core.visitor.Substituter;
 import org.glavo.kala.collection.SeqLike;
@@ -54,12 +52,7 @@ public final class PatClassifier implements Pat.Visitor<
   @Override
   public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>>
   visitCtor(Pat.@NotNull Ctor ctor, SeqLike<TypedPats> clauses) {
-    if (!(ctor.type().normalize(NormalizeMode.WHNF) instanceof AppTerm.DataCall data)) {
-      var s = ctor.type().toDoc().renderWithPageWidth(100);
-      throw new IllegalArgumentException(s + " is not a dataCall");
-    }
-    var available = data.availableCtors()
-      .toImmutableSeq();
+    var available = ctor.type().availableCtors().toImmutableSeq();
     var groups = available
       .view()
       .filter(c -> c.ref() != ctor.ref())

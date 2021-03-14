@@ -21,9 +21,9 @@ public final class TreeBuilder {
     guide.pats().forEachIndexed((patIx, pat) -> {
       var classification = PatClassifier.classify(pat, clauses);
       otherClasses.appendAll(classification.view().drop(1));
-      var current = classification.first();
-      splitFirst(current);
+      splitFirst(classification.first());
     });
+    otherClasses.forEach(this::splitFirst);
   }
 
   public void enter(@NotNull ImmutableSeq<Pat.PrototypeClause> clauses, Def.@NotNull Signature signature) {
