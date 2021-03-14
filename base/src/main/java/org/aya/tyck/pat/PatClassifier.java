@@ -12,6 +12,7 @@ import org.aya.core.visitor.Substituter;
 import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.SeqView;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple;
 import org.glavo.kala.tuple.Tuple2;
 import org.jetbrains.annotations.Contract;
@@ -102,13 +103,19 @@ public final class PatClassifier implements Pat.Visitor<
   public record TypedPats(
     @NotNull SeqView<@NotNull Pat> pats,
     int ix,
-    @NotNull ImmutableSeq<Term.@NotNull Param> param
+    @NotNull ImmutableSeq<Term.@NotNull Param> param,
+    @NotNull Option<Term> body
   ) {
+    public TypedPats(Def.@NotNull Signature signature, int ix, Pat.@NotNull PrototypeClause clause) {
+      this(clause.patterns().view(), ix, signature.param(), clause.expr());
+    }
+
     /** @apiNote parameter <code>subst</code> will be modified. */
     @Contract(value = "_, _ -> new")
     public @NotNull TypedPats inst(@NotNull Term inst, Substituter.@NotNull TermSubst subst) {
       subst.add(param.first().ref(), inst);
-      return new TypedPats(pats.drop(1), ix, Def.substParams(param, subst));
+      var term = body.map(t -> t.subst(subst));
+      return new TypedPats(pats.drop(1), ix, Def.substParams(param, subst), term);
     }
   }
 }

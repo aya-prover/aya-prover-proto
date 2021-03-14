@@ -5,6 +5,7 @@ package org.aya.tyck.pat;
 import org.aya.core.def.Def;
 import org.aya.core.pat.Pat;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
+import org.glavo.kala.collection.mutable.Buffer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,15 +14,19 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public final class TreeBuilder {
-  private void splitFirst(@NotNull ImmutableSeq<Pat.Clause> clauses, Def.@NotNull Signature signature) {
+  private void splitFirst(@NotNull ImmutableSeq<PatClassifier.TypedPats> clauses, Def.@NotNull Signature signature) {
     if (clauses.isEmpty()) return;
     var guide = clauses.first();
-    guide.patterns().forEachIndexed((patIx, pat) -> {
-      var totalPats = clauses.view().mapIndexed((clauseIx, clause) ->
-        new PatClassifier.TypedPats(clause.patterns().view(), clauseIx, signature.param()));
-      var param = signature.param().get(patIx);
-      var classification = PatClassifier.classify(pat, totalPats, param.type());
-
+    var otherClasses = Buffer.<ImmutableSeq<PatClassifier.TypedPats>>of();
+    guide.pats().forEachIndexed((patIx, pat) -> {
+      var classification = PatClassifier.classify(pat, clauses, pat.type());
+      otherClasses.appendAll(classification.view().drop(1));
+      var current = classification.first();
+      splitFirst(current, signature);
     });
+  }
+
+  public void enter(@NotNull ImmutableSeq<Pat.PrototypeClause> clauses, Def.@NotNull Signature signature) {
+    splitFirst(clauses.mapIndexed((index, clause) -> new PatClassifier.TypedPats(signature, index, clause)), signature);
   }
 }
