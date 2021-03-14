@@ -2,7 +2,6 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 package org.aya.tyck.pat;
 
-import org.aya.core.def.DataDef;
 import org.aya.core.def.Def;
 import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatUnify;
@@ -65,7 +64,7 @@ public final class PatClassifier implements Pat.Visitor<
     var patCtor = ctor.ref().core;
     var neighbor = clauses.view()
       .flatMap(typedPats -> unifyPattern(patCtor.freshPat(ctor.explicit()), typedPats));
-    TreeBuilder.splitFirst(neighbor);
+    CockxAbel.splitFirst(neighbor);
     // TODO[ice]: ^ how to use the results?
     return groups;
   }
