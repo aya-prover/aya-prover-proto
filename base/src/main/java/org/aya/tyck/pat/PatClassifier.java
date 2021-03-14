@@ -10,6 +10,7 @@ import org.aya.core.term.AppTerm;
 import org.aya.core.term.Term;
 import org.aya.core.visitor.Substituter;
 import org.glavo.kala.collection.SeqLike;
+import org.glavo.kala.collection.SeqView;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.tuple.Tuple2;
 import org.jetbrains.annotations.NotNull;
@@ -20,29 +21,29 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class PatClassifier implements Pat.Visitor<
   Tuple2<
-    @NotNull ImmutableSeq<PatClassifier.@NotNull TypedClause>,
+    @NotNull ImmutableSeq<PatClassifier.@NotNull TypedPats>,
     Term>,
-  SeqLike<@NotNull ImmutableSeq<PatClassifier.@NotNull TypedClause>>> {
+  SeqLike<@NotNull ImmutableSeq<PatClassifier.@NotNull TypedPats>>> {
   @Override
-  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedClause>> visitBind(
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitBind(
     Pat.@NotNull Bind bind,
-    Tuple2<ImmutableSeq<TypedClause>, Term> clausesType
+    Tuple2<ImmutableSeq<TypedPats>, Term> clausesType
   ) {
     return ImmutableSeq.empty();
   }
 
   @Override
-  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedClause>> visitTuple(
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitTuple(
     Pat.@NotNull Tuple tuple,
-    Tuple2<ImmutableSeq<TypedClause>, Term> clausesType
+    Tuple2<ImmutableSeq<TypedPats>, Term> clausesType
   ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedClause>> visitCtor(
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitCtor(
     Pat.@NotNull Ctor ctor,
-    Tuple2<ImmutableSeq<TypedClause>, Term> clausesType
+    Tuple2<ImmutableSeq<TypedPats>, Term> clausesType
   ) {
     if (!(clausesType._2.normalize(NormalizeMode.WHNF) instanceof AppTerm.DataCall data)) {
       var s = clausesType._2.toDoc().renderWithPageWidth(100);
@@ -56,7 +57,7 @@ public final class PatClassifier implements Pat.Visitor<
       .map(pat -> pat.freshPat(ctor.explicit()))
       .map(newPat -> clausesType._1
         .view()
-        .map(typedClause -> unifyPattern(newPat, typedClause))
+        .map(typedPats -> unifyPattern(newPat, typedPats))
         .filterNotNull()
         .toImmutableSeq());
     // TODO[ice]: indexed inductive type
@@ -70,22 +71,26 @@ public final class PatClassifier implements Pat.Visitor<
     return groups;
   }
 
-  private @Nullable TypedClause unifyPattern(Pat.Ctor newPat, @NotNull TypedClause typedClause) {
+  private @Nullable PatClassifier.TypedPats unifyPattern(Pat.Ctor newPat, @NotNull PatClassifier.TypedPats typedPats) {
     return PatUnify
-      .unify(typedClause.clauses.patterns().first(), newPat)
-      .map(subst -> typedClause.inst(newPat.toTerm(), subst))
+      .unify(typedPats.pats.first(), newPat)
+      .map(subst -> typedPats.inst(newPat.toTerm(), subst))
       .getOrNull();
   }
 
   /**
+   * @param ix        the index of the original clause
+   * @param pats      the current list of patterns, might be nested
+   * @param signature the current telescope
    * @author ice1000
    */
-  public record TypedClause(
-    Pat.@NotNull Clause clauses,
+  public record TypedPats(
+    @NotNull SeqView<@NotNull Pat> pats,
+    int ix,
     Def.@NotNull Signature signature
   ) {
-    public @NotNull TypedClause inst(@NotNull Term inst, @NotNull Substituter.TermSubst subst) {
-      return new TypedClause(clauses, signature.inst(inst).subst(subst));
+    public @NotNull TypedPats inst(@NotNull Term inst, @NotNull Substituter.TermSubst subst) {
+      return new TypedPats(pats.drop(1), ix, signature.inst(inst).subst(subst));
     }
   }
 }
