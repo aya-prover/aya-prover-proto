@@ -13,6 +13,7 @@ import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.SeqView;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.tuple.Tuple2;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,18 +80,22 @@ public final class PatClassifier implements Pat.Visitor<
   }
 
   /**
-   * @param ix        the index of the original clause
-   * @param pats      the current list of patterns, might be nested
-   * @param signature the current telescope
+   * @param ix    the index of the original clause
+   * @param pats  the current list of patterns, might be nested
+   * @param param the current telescope, without the codomain
+   *              because LHS check doesn't need it
    * @author ice1000
    */
   public record TypedPats(
     @NotNull SeqView<@NotNull Pat> pats,
     int ix,
-    Def.@NotNull Signature signature
+    @NotNull ImmutableSeq<Term.@NotNull Param> param
   ) {
-    public @NotNull TypedPats inst(@NotNull Term inst, @NotNull Substituter.TermSubst subst) {
-      return new TypedPats(pats.drop(1), ix, signature.inst(inst).subst(subst));
+    /** @apiNote parameter <code>subst</code> will be modified. */
+    @Contract(value = "_, _ -> new")
+    public @NotNull TypedPats inst(@NotNull Term inst, Substituter.@NotNull TermSubst subst) {
+      subst.add(param.first().ref(), inst);
+      return new TypedPats(pats.drop(1), ix, Def.substParams(param, subst));
     }
   }
 }
