@@ -2,7 +2,6 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 package org.aya.tyck.pat;
 
-import org.aya.core.def.Def;
 import org.aya.core.pat.Pat;
 import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
@@ -27,7 +26,7 @@ public final class CockxAbel {
     otherClasses.forEach(CockxAbel::splitFirst);
   }
 
-  public void enter(@NotNull ImmutableSeq<Pat.PrototypeClause> clauses, Def.@NotNull Signature signature) {
-    splitFirst(clauses.mapIndexed((index, clause) -> new PatClassifier.TypedPats(signature, index, clause)));
+  public void enter(@NotNull ImmutableSeq<Pat.PrototypeClause> clauses) {
+    splitFirst(clauses.mapIndexed(PatClassifier.TypedPats::new));
   }
 }

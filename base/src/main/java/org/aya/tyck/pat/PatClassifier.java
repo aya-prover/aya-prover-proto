@@ -2,7 +2,6 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 package org.aya.tyck.pat;
 
-import org.aya.core.def.Def;
 import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatUnify;
 import org.aya.core.term.Term;
@@ -76,28 +75,24 @@ public final class PatClassifier implements Pat.Visitor<
   }
 
   /**
-   * @param ix    the index of the original clause
-   * @param pats  the current list of patterns, might be nested
-   * @param param the current telescope, without the codomain
-   *              because LHS check doesn't need it
+   * @param ix   the index of the original clause
+   * @param pats the current list of patterns, might be nested
    * @author ice1000
    */
   public record TypedPats(
     @NotNull SeqView<@NotNull Pat> pats,
     int ix,
-    @NotNull ImmutableSeq<Term.@NotNull Param> param,
     @NotNull Option<Term> body
   ) {
-    public TypedPats(Def.@NotNull Signature signature, int ix, Pat.@NotNull PrototypeClause clause) {
-      this(clause.patterns().view(), ix, signature.param(), clause.expr());
+    public TypedPats(int ix, Pat.@NotNull PrototypeClause clause) {
+      this(clause.patterns().view(), ix, clause.expr());
     }
 
     /** @apiNote parameter <code>subst</code> will be modified. */
     @Contract(value = "_, _ -> new")
     public @NotNull TypedPats inst(@NotNull Term inst, Substituter.@NotNull TermSubst subst) {
-      subst.add(param.first().ref(), inst);
       var term = body.map(t -> t.subst(subst));
-      return new TypedPats(pats.drop(1), ix, Def.substParams(param, subst), term);
+      return new TypedPats(pats.drop(1), ix, term);
     }
   }
 }
