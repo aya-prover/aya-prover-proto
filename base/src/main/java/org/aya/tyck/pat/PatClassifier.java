@@ -12,6 +12,7 @@ import org.aya.core.visitor.Substituter;
 import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.SeqView;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
+import org.glavo.kala.tuple.Tuple;
 import org.glavo.kala.tuple.Tuple2;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,13 +23,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class PatClassifier implements Pat.Visitor<
   Tuple2<
-    @NotNull ImmutableSeq<PatClassifier.@NotNull TypedPats>,
+    @NotNull SeqLike<PatClassifier.@NotNull TypedPats>,
     Term>,
   SeqLike<@NotNull ImmutableSeq<PatClassifier.@NotNull TypedPats>>> {
+  private static final @NotNull PatClassifier INSTANCE = new PatClassifier();
+
+  public static @NotNull ImmutableSeq<@NotNull ImmutableSeq<@NotNull TypedPats>>
+  classify(@NotNull Pat pat, @NotNull SeqLike<@NotNull TypedPats> totalPats, @NotNull Term type) {
+    return pat.accept(PatClassifier.INSTANCE, Tuple.of(totalPats, type))
+      .toImmutableSeq();
+  }
+
+  private PatClassifier() {
+  }
+
   @Override
   public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitBind(
     Pat.@NotNull Bind bind,
-    Tuple2<ImmutableSeq<TypedPats>, Term> clausesType
+    Tuple2<SeqLike<TypedPats>, Term> clausesType
   ) {
     return ImmutableSeq.empty();
   }
@@ -36,7 +48,7 @@ public final class PatClassifier implements Pat.Visitor<
   @Override
   public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitTuple(
     Pat.@NotNull Tuple tuple,
-    Tuple2<ImmutableSeq<TypedPats>, Term> clausesType
+    Tuple2<SeqLike<TypedPats>, Term> clausesType
   ) {
     throw new UnsupportedOperationException();
   }
@@ -44,7 +56,7 @@ public final class PatClassifier implements Pat.Visitor<
   @Override
   public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitCtor(
     Pat.@NotNull Ctor ctor,
-    Tuple2<ImmutableSeq<TypedPats>, Term> clausesType
+    Tuple2<SeqLike<TypedPats>, Term> clausesType
   ) {
     if (!(clausesType._2.normalize(NormalizeMode.WHNF) instanceof AppTerm.DataCall data)) {
       var s = clausesType._2.toDoc().renderWithPageWidth(100);
@@ -63,11 +75,6 @@ public final class PatClassifier implements Pat.Visitor<
         .toImmutableSeq());
     // TODO[ice]: indexed inductive type
     assert available.anyMatch(c -> c.ref() == ctor.ref());
-    /*
-    var subclass = clausesType._1
-      .view()
-      .map(typedClause -> unifyPattern());
-    */
 
     return groups;
   }
