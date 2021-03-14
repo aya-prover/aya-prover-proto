@@ -50,9 +50,9 @@ public final class PatClassifier implements Pat.Visitor<
         .toImmutableSeq());
     // TODO[ice]: indexed inductive type
     assert available.anyMatch(c -> c.ref() == ctor.ref());
-    var patCtor = ctor.ref().core;
+    var freshPat = ctor.ref().core.freshPat(ctor.explicit());
     var neighbor = clauses.view()
-      .flatMap(typedPats -> unifyPattern(patCtor.freshPat(ctor.explicit()), typedPats));
+      .flatMap(typedPats -> unifyPattern(freshPat, typedPats));
     CockxAbel.splitFirst(neighbor);
     // TODO[ice]: ^ how to use the results?
     return groups;
