@@ -14,19 +14,19 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public final class TreeBuilder {
-  private void splitFirst(@NotNull ImmutableSeq<PatClassifier.TypedPats> clauses, Def.@NotNull Signature signature) {
+  private void splitFirst(@NotNull ImmutableSeq<PatClassifier.TypedPats> clauses) {
     if (clauses.isEmpty()) return;
     var guide = clauses.first();
     var otherClasses = Buffer.<ImmutableSeq<PatClassifier.TypedPats>>of();
     guide.pats().forEachIndexed((patIx, pat) -> {
-      var classification = PatClassifier.classify(pat, clauses, pat.type());
+      var classification = PatClassifier.classify(pat, clauses);
       otherClasses.appendAll(classification.view().drop(1));
       var current = classification.first();
-      splitFirst(current, signature);
+      splitFirst(current);
     });
   }
 
   public void enter(@NotNull ImmutableSeq<Pat.PrototypeClause> clauses, Def.@NotNull Signature signature) {
-    splitFirst(clauses.mapIndexed((index, clause) -> new PatClassifier.TypedPats(signature, index, clause)), signature);
+    splitFirst(clauses.mapIndexed((index, clause) -> new PatClassifier.TypedPats(signature, index, clause)));
   }
 }

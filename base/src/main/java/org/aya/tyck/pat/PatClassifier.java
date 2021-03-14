@@ -13,8 +13,6 @@ import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.SeqView;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.control.Option;
-import org.glavo.kala.tuple.Tuple;
-import org.glavo.kala.tuple.Tuple2;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,21 +21,18 @@ import org.jetbrains.annotations.Nullable;
  * @author ice1000
  */
 public final class PatClassifier implements Pat.Visitor<
-  Tuple2<
-    @NotNull SeqLike<PatClassifier.@NotNull TypedPats>,
-    Term>,
+  @NotNull SeqLike<PatClassifier.@NotNull TypedPats>,
   SeqLike<@NotNull ImmutableSeq<PatClassifier.@NotNull TypedPats>>> {
   private static final @NotNull PatClassifier INSTANCE = new PatClassifier();
 
   /**
-   * @param pat       the pattern to split
-   * @param type      of pat
-   * @param totalPats all the other patterns to classify
+   * @param pat     the pattern to split
+   * @param clauses all the other patterns to classify
    * @apiNote The first returned group is the group that matches the current split pattern.
    */
   public static @NotNull ImmutableSeq<@NotNull ImmutableSeq<@NotNull TypedPats>>
-  classify(@NotNull Pat pat, @NotNull SeqLike<@NotNull TypedPats> totalPats, @NotNull Term type) {
-    return pat.accept(PatClassifier.INSTANCE, Tuple.of(totalPats, type))
+  classify(@NotNull Pat pat, @NotNull SeqLike<@NotNull TypedPats> clauses) {
+    return pat.accept(PatClassifier.INSTANCE, clauses)
       .toImmutableSeq();
   }
 
@@ -45,28 +40,22 @@ public final class PatClassifier implements Pat.Visitor<
   }
 
   @Override
-  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitBind(
-    Pat.@NotNull Bind bind,
-    Tuple2<SeqLike<TypedPats>, Term> clausesType
-  ) {
-    return ImmutableSeq.of(clausesType._1.toImmutableSeq());
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>>
+  visitBind(Pat.@NotNull Bind bind, SeqLike<TypedPats> clauses) {
+    return ImmutableSeq.of(clauses.toImmutableSeq());
   }
 
   @Override
-  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitTuple(
-    Pat.@NotNull Tuple tuple,
-    Tuple2<SeqLike<TypedPats>, Term> clausesType
-  ) {
-    return ImmutableSeq.of(clausesType._1.toImmutableSeq());
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>>
+  visitTuple(Pat.@NotNull Tuple tuple, SeqLike<TypedPats> clauses) {
+    return ImmutableSeq.of(clauses.toImmutableSeq());
   }
 
   @Override
-  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>> visitCtor(
-    Pat.@NotNull Ctor ctor,
-    Tuple2<SeqLike<TypedPats>, Term> clausesType
-  ) {
-    if (!(clausesType._2.normalize(NormalizeMode.WHNF) instanceof AppTerm.DataCall data)) {
-      var s = clausesType._2.toDoc().renderWithPageWidth(100);
+  public SeqLike<@NotNull ImmutableSeq<@NotNull TypedPats>>
+  visitCtor(Pat.@NotNull Ctor ctor, SeqLike<TypedPats> clauses) {
+    if (!(ctor.type().normalize(NormalizeMode.WHNF) instanceof AppTerm.DataCall data)) {
+      var s = ctor.type().toDoc().renderWithPageWidth(100);
       throw new IllegalArgumentException(s + " is not a dataCall");
     }
     var available = data.availableCtors()
@@ -75,8 +64,7 @@ public final class PatClassifier implements Pat.Visitor<
       .view()
       .filter(c -> c.ref() != ctor.ref())
       .map(pat -> pat.freshPat(ctor.explicit()))
-      .map(newPat -> clausesType._1
-        .view()
+      .map(newPat -> clauses.view()
         .map(typedPats -> unifyPattern(newPat, typedPats))
         .filterNotNull()
         .toImmutableSeq());
