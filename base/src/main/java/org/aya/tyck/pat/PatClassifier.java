@@ -2,6 +2,7 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 package org.aya.tyck.pat;
 
+import org.aya.core.def.DataDef;
 import org.aya.core.def.Def;
 import org.aya.core.pat.Pat;
 import org.aya.core.pat.PatUnify;
@@ -13,7 +14,6 @@ import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @author ice1000
@@ -58,20 +58,22 @@ public final class PatClassifier implements Pat.Visitor<
       .filter(c -> c.ref() != ctor.ref())
       .map(pat -> pat.freshPat(ctor.explicit()))
       .map(newPat -> clauses.view()
-        .map(typedPats -> unifyPattern(newPat, typedPats))
-        .filterNotNull()
+        .flatMap(typedPats -> unifyPattern(newPat, typedPats))
         .toImmutableSeq());
     // TODO[ice]: indexed inductive type
     assert available.anyMatch(c -> c.ref() == ctor.ref());
-
+    var patCtor = ctor.ref().core;
+    var neighbor = clauses.view()
+      .flatMap(typedPats -> unifyPattern(patCtor.freshPat(ctor.explicit()), typedPats));
+    TreeBuilder.splitFirst(neighbor);
+    // TODO[ice]: ^ how to use the results?
     return groups;
   }
 
-  private @Nullable PatClassifier.TypedPats unifyPattern(Pat.Ctor newPat, @NotNull PatClassifier.TypedPats typedPats) {
+  private Option<PatClassifier.TypedPats> unifyPattern(Pat.Ctor newPat, @NotNull PatClassifier.TypedPats typedPats) {
     return PatUnify
       .unify(typedPats.pats.first(), newPat)
-      .map(subst -> typedPats.inst(newPat.toTerm(), subst))
-      .getOrNull();
+      .map(subst -> typedPats.inst(newPat.toTerm(), subst));
   }
 
   /**

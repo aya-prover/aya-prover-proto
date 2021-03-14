@@ -4,6 +4,8 @@ package org.aya.tyck.pat;
 
 import org.aya.core.def.Def;
 import org.aya.core.pat.Pat;
+import org.glavo.kala.collection.SeqLike;
+import org.glavo.kala.collection.SeqView;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.Buffer;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public final class TreeBuilder {
-  private void splitFirst(@NotNull ImmutableSeq<PatClassifier.TypedPats> clauses) {
+  public static void splitFirst(@NotNull SeqLike<PatClassifier.TypedPats> clauses) {
     if (clauses.isEmpty()) return;
     var guide = clauses.first();
     var otherClasses = Buffer.<ImmutableSeq<PatClassifier.TypedPats>>of();
@@ -23,7 +25,7 @@ public final class TreeBuilder {
       otherClasses.appendAll(classification.view().drop(1));
       splitFirst(classification.first());
     });
-    otherClasses.forEach(this::splitFirst);
+    otherClasses.forEach(TreeBuilder::splitFirst);
   }
 
   public void enter(@NotNull ImmutableSeq<Pat.PrototypeClause> clauses, Def.@NotNull Signature signature) {
