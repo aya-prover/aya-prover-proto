@@ -18,10 +18,10 @@ public final class CockxAbel {
     if (clauses.isEmpty()) return;
     var guide = clauses.first();
     var otherClasses = Buffer.<ImmutableSeq<PatClassifier.TypedPats>>of();
-    guide.pats().forEachIndexed((patIx, pat) -> {
-      var classification = PatClassifier.classify(pat, clauses);
-      otherClasses.appendAll(classification.view().drop(1));
+    guide.pats().forEach(pat -> {
+      var classification = pat.accept(PatClassifier.INSTANCE, clauses);
       splitFirst(classification.first());
+      otherClasses.appendAll(classification.view().drop(1));
     });
     otherClasses.forEach(CockxAbel::splitFirst);
   }

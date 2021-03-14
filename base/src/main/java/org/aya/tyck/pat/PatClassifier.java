@@ -15,22 +15,12 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ice1000
+ * @apiNote The first returned group is the group that matches the current split pattern.
  */
 public final class PatClassifier implements Pat.Visitor<
   @NotNull SeqLike<PatClassifier.@NotNull TypedPats>,
   SeqLike<@NotNull ImmutableSeq<PatClassifier.@NotNull TypedPats>>> {
-  private static final @NotNull PatClassifier INSTANCE = new PatClassifier();
-
-  /**
-   * @param pat     the pattern to split
-   * @param clauses all the other patterns to classify
-   * @apiNote The first returned group is the group that matches the current split pattern.
-   */
-  public static @NotNull ImmutableSeq<@NotNull ImmutableSeq<@NotNull TypedPats>>
-  classify(@NotNull Pat pat, @NotNull SeqLike<@NotNull TypedPats> clauses) {
-    return pat.accept(PatClassifier.INSTANCE, clauses)
-      .toImmutableSeq();
-  }
+  public static final @NotNull PatClassifier INSTANCE = new PatClassifier();
 
   private PatClassifier() {
   }
@@ -91,6 +81,8 @@ public final class PatClassifier implements Pat.Visitor<
     /** @apiNote parameter <code>subst</code> will be modified. */
     @Contract(value = "_, _ -> new")
     public @NotNull TypedPats inst(@NotNull Term inst, Substituter.@NotNull TermSubst subst) {
+      var as = pats.first().as();
+      if (as != null) subst.add(as, inst);
       var term = body.map(t -> t.subst(subst));
       return new TypedPats(pats.drop(1), ix, term);
     }
