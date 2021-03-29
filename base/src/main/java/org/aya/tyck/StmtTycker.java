@@ -169,6 +169,10 @@ public record StmtTycker(
     if (what._2.isLeft())
       return new FnDef(decl.ref, ctxTele, resultTele, resultTy, Either.left(what._2.getLeftValue()));
     var elabClauses = what._2.getRightValue();
+    if (resultTele.stream().anyMatch(x -> (x.type() instanceof CallTerm.Prim prim) && prim.ref().core == PrimDef.INTERVAL)) {
+      // TODO[vont]: pattern matching on I is prohibited
+      throw new ExprTycker.TyckerException();
+    }
     var matchings = elabClauses.flatMap(Pat.PrototypeClause::deprototypify);
     var elaborated = new FnDef(decl.ref, ctxTele, resultTele, resultTy, Either.right(matchings));
     if (matchings.isNotEmpty()) {

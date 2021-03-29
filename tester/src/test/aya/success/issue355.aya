@@ -1,0 +1,7 @@
+\prim I
+
+\open \data Nat : \Set
+ | zero
+ | suc Nat
+
+\def test1 (a : I) : Nat => zero
