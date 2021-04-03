@@ -186,8 +186,8 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
     var ctxTele = Def.defContextTele(defVar);
     // ice: should we rename the vars in this telescope? Probably not.
     var body = function.apply(defVar,
-      ctxTele.view().map(Term.Param::toArg).toImmutableSeq(),
-      tele.view().map(Term.Param::toArg).toImmutableSeq());
+      ctxTele.map(Term.Param::toArg),
+      tele.map(Term.Param::toArg));
     var type = PiTerm.make(false, tele, Def.defResult(defVar));
     return new Result(LamTerm.make(tele, body), type);
   }

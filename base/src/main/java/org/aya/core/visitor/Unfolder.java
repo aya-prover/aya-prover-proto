@@ -68,9 +68,10 @@ public interface Unfolder<P> extends TermFixpoint<P> {
     // Not yet type checked
     var args = hole.fullArgs().map(arg -> visitArg(arg, p));
     // This shouldn't fail
-    assert args.sizeEquals(def.fullTelescope().size());
-    assert Term.Param.checkSubst(def.fullTelescope(), args);
-    var subst = buildSubst(def.fullTelescope(), args);
+    var fullTelescope = def.fullTelescope();
+    assert args.sizeEquals(fullTelescope.size());
+    assert Term.Param.checkSubst(fullTelescope, args);
+    var subst = buildSubst(fullTelescope, args);
     var body = def.body;
     if (body == null) return hole;
     return body.subst(subst).accept(this, p);

@@ -31,7 +31,7 @@ public record LocalCtx(@NotNull MutableMap<LocalVar, Term> localMap, @Nullable L
     var ctxTele = extract();
     var meta = new Meta(ctxTele, type);
     var ref = new HoleVar<>(name, meta);
-    return new CallTerm.Hole(ref, ctxTele.view().map(Term.Param::toArg).toImmutableSeq());
+    return new CallTerm.Hole(ref, ctxTele.map(Term.Param::toArg));
   }
 
   public <T> T with(@NotNull Term.Param param, @NotNull Supplier<T> action) {
