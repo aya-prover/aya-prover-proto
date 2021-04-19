@@ -4,9 +4,9 @@ package org.aya.lsp.server;
 
 import org.aya.api.error.Problem;
 import org.aya.api.error.Reporter;
+import org.aya.api.error.SourceFileLocator;
 import org.aya.api.error.SourcePos;
 import org.aya.cli.CompilerFlags;
-import org.aya.cli.DefaultLocator;
 import org.aya.cli.SingleFileCompiler;
 import org.aya.core.def.Def;
 import org.aya.lsp.Log;
@@ -21,6 +21,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.Buffer;
 import org.glavo.kala.collection.mutable.MutableHashMap;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class AyaService implements WorkspaceService, TextDocumentService {
+public class AyaService implements WorkspaceService, TextDocumentService, SourceFileLocator {
   private final Buffer<Path> modulePath = Buffer.of();
   private final LspLibraryManager libraryManager = new LspLibraryManager(MutableHashMap.of());
   private Set<String> lastErrorReportedFiles = Collections.emptySet();
@@ -47,7 +48,7 @@ public class AyaService implements WorkspaceService, TextDocumentService {
   public HighlightResult loadFile(@NotNull String uri) {
     Log.d("Loading %s", uri);
     var reporter = new LspReporter();
-    var compiler = new SingleFileCompiler(new DefaultLocator(), reporter, null);
+    var compiler = new SingleFileCompiler(this, reporter, null);
     var compilerFlags = new CompilerFlags(
       CompilerFlags.Message.EMOJI, false, null,
       modulePath.toImmutableSeq());
@@ -130,6 +131,13 @@ public class AyaService implements WorkspaceService, TextDocumentService {
   @Override
   public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(DefinitionParams params) {
     return CompletableFuture.supplyAsync(() -> Either.forLeft(Collections.emptyList()));
+  }
+
+  @Override public @NotNull Option<String> locate(@NotNull Path path) {
+    var abs = path.toAbsolutePath();
+    var found = modulePath.find(m -> abs.startsWith(m.toAbsolutePath()));
+    if (found.isDefined()) return Option.some(abs.relativize(found.get()).toString());
+    return Option.none();
   }
 
   public static final class LspReporter implements Reporter {
