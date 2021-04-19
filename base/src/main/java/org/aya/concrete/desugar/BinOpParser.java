@@ -59,9 +59,8 @@ public final class BinOpParser {
           var peek = opStack.peek();
           var cmp = opSet.compare(peek._2, currentOp);
           if (cmp == BinOpSet.PredCmp.Undefined) {
-            opSet.reporter().report(new OperatorProblem.AmbiguousPredError(currentOp.name(),
-              peek._2.name(),
-              peek._1.expr.sourcePos()));
+            opSet.reporter().report(new OperatorProblem.AmbiguousPredError(opSet.sourceFile(),
+              currentOp.name(), peek._2.name(), peek._1.expr.sourcePos()));
             throw new DesugarInterruptedException();
           } else if (cmp == BinOpSet.PredCmp.Tighter || cmp == BinOpSet.PredCmp.Equal) {
             var topOp = opStack.pop();

@@ -12,6 +12,7 @@ import org.aya.tyck.unify.TypedDefEq;
 import org.aya.util.Ordering;
 import org.glavo.kala.collection.mutable.Buffer;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 
@@ -22,7 +23,7 @@ public class LispTestCase {
     return new TypedDefEq(
       ThrowingReporter.INSTANCE, Ordering.Eq,
       new LocalCtx(localCtx, null), null, SourcePos.NONE,
-      new LevelEqn.Set(Buffer.of(), ThrowingReporter.INSTANCE, Buffer.of())
+      new LevelEqn.Set(Option.none(), Buffer.of(), ThrowingReporter.INSTANCE, Buffer.of())
     );
   }
 

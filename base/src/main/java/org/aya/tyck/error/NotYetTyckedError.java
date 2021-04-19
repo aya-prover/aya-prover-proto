@@ -6,9 +6,11 @@ import org.aya.api.error.Problem;
 import org.aya.api.error.SourcePos;
 import org.aya.api.ref.Var;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 public record NotYetTyckedError(
+  @NotNull Option<String> sourceFile,
   @NotNull SourcePos sourcePos,
   @NotNull Var var
 ) implements Problem {

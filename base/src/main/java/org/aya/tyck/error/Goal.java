@@ -8,9 +8,11 @@ import org.aya.concrete.Expr;
 import org.aya.core.Meta;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Docile;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 public record Goal(
+  @NotNull Option<String> sourceFile,
   @NotNull Expr.HoleExpr expr,
   @NotNull Meta meta
 ) implements ExprProblem {

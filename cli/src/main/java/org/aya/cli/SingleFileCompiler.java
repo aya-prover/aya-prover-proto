@@ -20,6 +20,7 @@ import org.aya.pretty.doc.Docile;
 import org.aya.tyck.trace.Trace;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.Buffer;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,14 +40,16 @@ public record SingleFileCompiler(@NotNull Reporter reporter, Trace.@Nullable Bui
                      @Nullable Consumer<ImmutableSeq<Stmt>> onResolved,
                      @Nullable Consumer<ImmutableSeq<Def>> onTycked) throws IOException {
     var reporter = new CountingReporter(this.reporter);
-    var parser = AyaParsing.parser(sourceFile, reporter);
+    var sourceFileDisplay = Option.some(sourceFile.toAbsolutePath().toString());
+    var parser = AyaParsing.parser(sourceFileDisplay, sourceFile, reporter);
     try {
-      var program = new AyaProducer(reporter).visitProgram(parser.program());
+      var producer = new AyaProducer(sourceFileDisplay, reporter);
+      var program = producer.visitProgram(parser.program());
       // [chuigda]: I suggest 80 columns, or we may detect terminal width with some library
       distill(sourceFile, flags.distillInfo(), program, CliArgs.DistillStage.raw);
       var loader = new ModuleListLoader(flags.modulePaths().map(path ->
         new CachedModuleLoader(new FileModuleLoader(path, reporter, builder))));
-      FileModuleLoader.tyckModule(loader, program, reporter,
+      FileModuleLoader.tyckModule(sourceFileDisplay, loader, program, reporter,
         () -> {
           distill(sourceFile, flags.distillInfo(), program, CliArgs.DistillStage.scoped);
           if (onResolved != null) onResolved.accept(program);

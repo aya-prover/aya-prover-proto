@@ -6,6 +6,7 @@ import org.aya.api.error.Reporter;
 import org.aya.api.ref.Var;
 import org.aya.api.util.NormalizeMode;
 import org.aya.pretty.doc.Docile;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,5 +19,5 @@ public interface CoreTerm extends Docile {
   int findUsages(@NotNull Var var);
   @NotNull CoreTerm normalize(@NotNull NormalizeMode mode);
   @Nullable CorePat toPat();
-  @NotNull CoreTerm strip(@NotNull Reporter reporter);
+  @NotNull CoreTerm strip(@NotNull Option<String> sourceFile, @NotNull Reporter reporter);
 }

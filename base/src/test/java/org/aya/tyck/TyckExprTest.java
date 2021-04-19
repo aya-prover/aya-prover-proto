@@ -15,6 +15,7 @@ import org.aya.test.Lisp;
 import org.aya.test.ThrowingReporter;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.control.Either;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 import org.junit.jupiter.api.Test;
@@ -106,6 +107,6 @@ public class TyckExprTest {
   }
 
   private static @NotNull ExprTycker tycker() {
-    return new ExprTycker(ThrowingReporter.INSTANCE, null);
+    return new ExprTycker(Option.none(), ThrowingReporter.INSTANCE, null);
   }
 }

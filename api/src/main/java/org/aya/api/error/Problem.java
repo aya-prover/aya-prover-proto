@@ -4,6 +4,7 @@ package org.aya.api.error;
 
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.error.PrettyError;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -27,6 +28,7 @@ public interface Problem {
     OTHER
   }
 
+  @NotNull Option<String> sourceFile();
   @NotNull SourcePos sourcePos();
   @NotNull Doc describe();
   @NotNull Severity level();

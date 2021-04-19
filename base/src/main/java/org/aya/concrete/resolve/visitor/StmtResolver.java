@@ -11,6 +11,7 @@ import org.aya.concrete.Stmt;
 import org.aya.concrete.desugar.BinOpSet;
 import org.aya.concrete.resolve.context.Context;
 import org.aya.concrete.resolve.error.UnknownOperatorError;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple;
 import org.glavo.kala.tuple.Tuple2;
 import org.glavo.kala.tuple.Unit;
@@ -22,12 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author re-xyr, iec1000
  */
-public final class StmtResolver implements Stmt.Visitor<BinOpSet, Unit> {
-  public static final @NotNull StmtResolver INSTANCE = new StmtResolver();
-
-  private StmtResolver() {
-  }
-
+public record StmtResolver(@NotNull Option<String> sourceFile) implements Stmt.Visitor<BinOpSet, Unit> {
   @Override public Unit visitModule(Stmt.@NotNull ModuleStmt mod, BinOpSet opSet) {
     visitAll(mod.contents(), opSet);
     return Unit.unit();
@@ -59,7 +55,7 @@ public final class StmtResolver implements Stmt.Visitor<BinOpSet, Unit> {
     if (var instanceof DefVar<?, ?> defVar && defVar.concrete instanceof Decl.OpDecl op) {
       return Tuple.of(defVar.name(), op);
     }
-    reporter.report(new UnknownOperatorError(id.sourcePos(), id.join()));
+    reporter.report(new UnknownOperatorError(sourceFile, id.sourcePos(), id.join()));
     throw new Context.ResolvingInterruptedException();
   }
 

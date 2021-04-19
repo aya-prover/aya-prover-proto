@@ -5,6 +5,7 @@ package org.aya.tyck;
 import org.aya.test.ThrowingReporter;
 import org.aya.tyck.trace.MdUnicodeTrace;
 import org.aya.tyck.trace.Trace;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Unit;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class TracingTest {
   @Test
   public void traceExistence() {
-    var checker = new ExprTycker(ThrowingReporter.INSTANCE, new Trace.Builder());
+    var checker = new ExprTycker(Option.none(), ThrowingReporter.INSTANCE, new Trace.Builder());
     TyckExprTest.idLamTestCase(TyckExprTest.lamConnected(), checker);
     final var tops = Objects.requireNonNull(checker.traceBuilder).getTops();
     assertFalse(tops.isEmpty());
@@ -25,7 +26,7 @@ public class TracingTest {
 
   @Test
   public void traceMd() {
-    var checker = new ExprTycker(ThrowingReporter.INSTANCE, new Trace.Builder());
+    var checker = new ExprTycker(Option.none(), ThrowingReporter.INSTANCE, new Trace.Builder());
     TyckExprTest.idLamTestCase(TyckExprTest.lamConnected(), checker);
     var show = new MdUnicodeTrace();
     show.lineSep = "\n";

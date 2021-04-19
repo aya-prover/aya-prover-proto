@@ -21,6 +21,7 @@ import org.aya.test.Lisp;
 import org.aya.test.ThrowingReporter;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.MutableHashMap;
+import org.glavo.kala.control.Option;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -49,12 +50,12 @@ public class TyckDeclTest {
 
   private FnDef successTyckFn(@NotNull @NonNls @Language("TEXT") String code) {
     var decl = ParseTest.parseDecl(code)._1;
-    decl.ctx = new EmptyContext(ThrowingReporter.INSTANCE).derive();
-    var opSet = new BinOpSet(ThrowingReporter.INSTANCE);
-    decl.resolve(opSet);
+    decl.ctx = new EmptyContext(Option.none(), ThrowingReporter.INSTANCE).derive();
+    var opSet = new BinOpSet(Option.none(), ThrowingReporter.INSTANCE);
+    decl.resolve(Option.none(), opSet);
     opSet.sort();
-    decl.desugar(ThrowingReporter.INSTANCE, opSet);
-    var def = decl.tyck(ThrowingReporter.INSTANCE, null);
+    decl.desugar(Option.none(), ThrowingReporter.INSTANCE, opSet);
+    var def = decl.tyck(Option.none(), ThrowingReporter.INSTANCE, null);
     assertNotNull(def);
     assertTrue(def instanceof FnDef);
     return ((FnDef) def);
@@ -83,15 +84,15 @@ public class TyckDeclTest {
   public static @NotNull ImmutableSeq<Def> successTyckDecls(@Language("TEXT") @NonNls @NotNull String text) {
     var decls = ParseTest.INSTANCE
       .visitProgram(AyaParsing.parser(text).program());
-    var ssr = new StmtShallowResolver(new EmptyModuleLoader());
-    var ctx = new EmptyContext(ThrowingReporter.INSTANCE).derive();
+    var ssr = new StmtShallowResolver(Option.none(), new EmptyModuleLoader());
+    var ctx = new EmptyContext(Option.none(), ThrowingReporter.INSTANCE).derive();
     decls.forEach(d -> d.accept(ssr, ctx));
-    var opSet = new BinOpSet(ThrowingReporter.INSTANCE);
-    decls.forEach(s -> s.resolve(opSet));
+    var opSet = new BinOpSet(Option.none(), ThrowingReporter.INSTANCE);
+    decls.forEach(s -> s.resolve(Option.none(), opSet));
     opSet.sort();
-    decls.forEach(stmt -> stmt.desugar(ThrowingReporter.INSTANCE, opSet));
+    decls.forEach(stmt -> stmt.desugar(Option.none(), ThrowingReporter.INSTANCE, opSet));
     return decls
-      .map(i -> i instanceof Signatured s ? s.tyck(ThrowingReporter.INSTANCE, null) : null)
+      .map(i -> i instanceof Signatured s ? s.tyck(Option.none(), ThrowingReporter.INSTANCE, null) : null)
       .filter(Objects::nonNull);
   }
 }

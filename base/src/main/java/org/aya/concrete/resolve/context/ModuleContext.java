@@ -14,6 +14,7 @@ import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.Buffer;
 import org.glavo.kala.collection.mutable.MutableHashMap;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +41,10 @@ public record ModuleContext(
     return parent.reporter();
   }
 
+  @Override public @NotNull Option<String> sourceFile() {
+    return parent.sourceFile();
+  }
+
   @Override public @Nullable Var getUnqualifiedLocalMaybe(@NotNull String name, @NotNull SourcePos sourcePos) {
     var result = globals.getOrNull(name);
     if (result == null) return null;
@@ -47,7 +52,7 @@ public record ModuleContext(
     else {
       var disamb = Buffer.<Seq<String>>of();
       result.forEach((k, v) -> disamb.append(k));
-      return reportAndThrow(new AmbiguousNameError(name, disamb.toImmutableSeq(), sourcePos));
+      return reportAndThrow(new AmbiguousNameError(sourceFile(), name, disamb.toImmutableSeq(), sourcePos));
     }
   }
 
@@ -56,7 +61,7 @@ public record ModuleContext(
     var mod = modules.getOrNull(modName);
     if (mod == null) return null;
     var ref = mod.getOrNull(name);
-    if (ref == null) reportAndThrow(new QualifiedNameNotFoundError(modName, name, sourcePos));
+    if (ref == null) reportAndThrow(new QualifiedNameNotFoundError(sourceFile(), modName, name, sourcePos));
     return ref;
   }
 
@@ -74,10 +79,10 @@ public record ModuleContext(
     module.forEach((name, mod) -> {
       var componentName = modName.concat(name);
       if (modules.containsKey(componentName)) {
-        reportAndThrow(new DuplicateModNameError(modName, sourcePos));
+        reportAndThrow(new DuplicateModNameError(sourceFile(), modName, sourcePos));
       }
       if (getModuleMaybe(componentName, sourcePos) != null) {
-        reporter().report(new ModShadowingWarn(componentName, sourcePos));
+        reporter().report(new ModShadowingWarn(sourceFile(), componentName, sourcePos));
       }
       modules.set(componentName, mod);
       if (accessibility == Stmt.Accessibility.Public) exports.set(componentName, mod);
@@ -92,7 +97,7 @@ public record ModuleContext(
     @NotNull SourcePos sourcePos
   ) {
     var mod = modules.getOrNull(modName);
-    if (mod == null) reportAndThrow(new ModNameNotFoundError(modName, sourcePos));
+    if (mod == null) reportAndThrow(new ModNameNotFoundError(sourceFile(), modName, sourcePos));
     mod.forEach((name, ref) -> {
       if (using.apply(name)) {
         var newName = rename.getOrDefault(name, name);
@@ -110,13 +115,13 @@ public record ModuleContext(
   ) {
     if (!globals.containsKey(name)) {
       if (getUnqualifiedMaybe(name, sourcePos) != null && !name.startsWith(Constants.ANONYMOUS_PREFIX)) {
-        reporter().report(new ShadowingWarn(name, sourcePos));
+        reporter().report(new ShadowingWarn(sourceFile(), name, sourcePos));
       }
       globals.set(name, MutableHashMap.of());
     } else if (globals.get(name).containsKey(modName)) {
-      reportAndThrow(new DuplicateNameError(name, sourcePos));
+      reportAndThrow(new DuplicateNameError(sourceFile(), name, sourcePos));
     } else {
-      reporter().report(new AmbiguousNameWarn(name, sourcePos));
+      reporter().report(new AmbiguousNameWarn(sourceFile(), name, sourcePos));
     }
     globals.get(name).set(modName, ref);
     if (modName.equals(TOP_LEVEL_MOD_NAME)) {
@@ -125,7 +130,7 @@ public record ModuleContext(
     }
     if (accessibility == Stmt.Accessibility.Public) {
       if (exports.get(TOP_LEVEL_MOD_NAME).containsKey(name)) {
-        reportAndThrow(new DuplicateExportError(name, sourcePos));
+        reportAndThrow(new DuplicateExportError(sourceFile(), name, sourcePos));
       } else exports.get(TOP_LEVEL_MOD_NAME).set(name, ref);
     }
   }

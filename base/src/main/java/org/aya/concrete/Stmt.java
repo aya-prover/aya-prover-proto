@@ -12,6 +12,7 @@ import org.aya.concrete.visitor.ConcreteDistiller;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Docile;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Unit;
 import org.glavo.kala.value.Ref;
 import org.jetbrains.annotations.ApiStatus;
@@ -29,12 +30,12 @@ public sealed interface Stmt extends Docile
   /** @apiNote the \import stmts do not have a meaningful accessibility, do not refer to this in those cases */
   @Contract(pure = true) @NotNull Accessibility accessibility();
 
-  default void resolve(@NotNull BinOpSet opSet) {
-    accept(StmtResolver.INSTANCE, opSet);
+  default void resolve(@NotNull Option<String> sourceFile, @NotNull BinOpSet opSet) {
+    accept(new StmtResolver(sourceFile), opSet);
   }
 
-  default void desugar(@NotNull Reporter reporter, @NotNull BinOpSet opSet) {
-    accept(new Desugarer(reporter, opSet), Unit.unit());
+  default void desugar(@NotNull Option<String> sourceFile, @NotNull Reporter reporter, @NotNull BinOpSet opSet) {
+    accept(new Desugarer(sourceFile, reporter, opSet), Unit.unit());
   }
 
   @Override default @NotNull Doc toDoc() {

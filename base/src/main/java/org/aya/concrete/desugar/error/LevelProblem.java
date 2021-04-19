@@ -6,6 +6,7 @@ import org.aya.api.error.ExprProblem;
 import org.aya.api.ref.LevelGenVar;
 import org.aya.concrete.Expr;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,7 +17,7 @@ public sealed interface LevelProblem extends ExprProblem {
     return Severity.ERROR;
   }
 
-  record BadTypeExpr(@NotNull Expr.AppExpr expr, int expected)
+  record BadTypeExpr(@NotNull Option<String> sourceFile, @NotNull Expr.AppExpr expr, int expected)
     implements LevelProblem {
     @Override public @NotNull Doc describe() {
       return Doc.hcat(
@@ -26,6 +27,7 @@ public sealed interface LevelProblem extends ExprProblem {
   }
 
   record BadLevelExpr(
+    @NotNull Option<String> sourceFile,
     @NotNull Expr expr
   ) implements LevelProblem {
     @Override public @NotNull Doc describe() {
@@ -34,6 +36,7 @@ public sealed interface LevelProblem extends ExprProblem {
   }
 
   record BadLevelKind(
+    @NotNull Option<String> sourceFile,
     @NotNull Expr expr, @NotNull LevelGenVar.Kind kind
   ) implements LevelProblem {
     @Override public @NotNull Doc describe() {

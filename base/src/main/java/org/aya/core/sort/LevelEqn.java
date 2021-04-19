@@ -11,6 +11,7 @@ import org.aya.util.Decision;
 import org.aya.util.Ordering;
 import org.glavo.kala.collection.mutable.Buffer;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,6 +38,7 @@ public record LevelEqn(@NotNull Level<Sort.LvlVar> lhs, @NotNull Level<Sort.LvlV
    * A set of level equations.
    */
   public record Set(
+    @NotNull Option<String> sourceFile,
     @NotNull Buffer<Sort.LvlVar> vars,
     @NotNull Reporter reporter,
     @NotNull Buffer<@NotNull LevelEqn> eqns
@@ -50,13 +52,13 @@ public record LevelEqn(@NotNull Level<Sort.LvlVar> lhs, @NotNull Level<Sort.LvlV
       @NotNull Level<Sort.LvlVar> lhs, @NotNull Level<Sort.LvlVar> rhs,
       @NotNull Ordering cmp, @NotNull SourcePos loc
     ) {
-      insertEqn(loc, cmp, new LevelEqn(lhs, rhs));
+      insertEqn(sourceFile, loc, cmp, new LevelEqn(lhs, rhs));
     }
 
-    private void insertEqn(@NotNull SourcePos loc, @NotNull Ordering cmp, LevelEqn h) {
+    private void insertEqn(@NotNull Option<String> sourceFile, @NotNull SourcePos loc, @NotNull Ordering cmp, LevelEqn h) {
       switch (h.biasedEq(cmp)) {
         case NO -> {
-          reporter.report(new LevelMismatchError(loc, h));
+          reporter.report(new LevelMismatchError(sourceFile, loc, h));
           throw new ExprTycker.TyckInterruptedException();
         }
         case MAYBE -> eqns.append(h);

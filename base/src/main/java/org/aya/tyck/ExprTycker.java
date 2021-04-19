@@ -36,6 +36,7 @@ import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.Buffer;
 import org.glavo.kala.collection.mutable.MutableHashMap;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple;
 import org.glavo.kala.tuple.Tuple2;
 import org.glavo.kala.tuple.Tuple3;
@@ -55,6 +56,7 @@ import java.util.function.Consumer;
  */
 public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
   public final @NotNull Reporter reporter;
+  public final @NotNull Option<String> sourceFile;
   public @NotNull LocalCtx localCtx;
   public final @Nullable Trace.Builder traceBuilder;
   public final @NotNull LevelEqn.Set equations;
@@ -83,21 +85,22 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
     });
   }
 
-  public ExprTycker(@NotNull Reporter reporter, @NotNull LocalCtx localCtx, Trace.@Nullable Builder traceBuilder) {
+  public ExprTycker(@NotNull Option<String> sourceFile, @NotNull Reporter reporter, @NotNull LocalCtx localCtx, Trace.@Nullable Builder traceBuilder) {
+    this.sourceFile = sourceFile;
     this.reporter = reporter;
     this.localCtx = localCtx;
     this.traceBuilder = traceBuilder;
-    equations = new LevelEqn.Set(Buffer.of(), reporter, Buffer.of());
+    equations = new LevelEqn.Set(sourceFile, Buffer.of(), reporter, Buffer.of());
   }
 
-  public ExprTycker(@NotNull Reporter reporter, Trace.@Nullable Builder traceBuilder) {
-    this(reporter, new LocalCtx(), traceBuilder);
+  public ExprTycker(@NotNull Option<String> sourceFile, @NotNull Reporter reporter, Trace.@Nullable Builder traceBuilder) {
+    this(sourceFile, reporter, new LocalCtx(), traceBuilder);
   }
 
   public @NotNull Result finalize(@NotNull Result result) {
     return new Result(
-      result.wellTyped.strip(reporter),
-      result.type.strip(reporter)
+      result.wellTyped.strip(sourceFile, reporter),
+      result.type.strip(sourceFile, reporter)
     );
   }
 
@@ -137,7 +140,7 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
   }
 
   <T> T wantButNo(@NotNull Expr expr, Term term, String expectedText) {
-    reporter.report(new BadTypeError(expr, Doc.plain(expectedText), term));
+    reporter.report(new BadTypeError(sourceFile, expr, Doc.plain(expectedText), term));
     throw new TyckInterruptedException();
   }
 
@@ -240,7 +243,7 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
   void unifyTyThrowing(Term upper, Term lower, Expr loc) {
     var unification = unifyTy(upper, lower, loc.sourcePos());
     if (!unification) {
-      reporter.report(new UnifyError(loc, upper, lower));
+      reporter.report(new UnifyError(sourceFile, loc, upper, lower));
       throw new TyckInterruptedException();
     }
   }
@@ -308,7 +311,7 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
       var conField = conFieldOpt.get();
       conFields = conFields.dropWhile(t -> t == conField);
       var type = Def.defResult(defField.ref()).subst(subst);
-      var fieldSubst = new ExprRefSubst(reporter);
+      var fieldSubst = new ExprRefSubst(sourceFile, reporter);
       var telescope = defField.ref().core.fieldTele();
       if (!telescope.sizeEquals(conField.bindings().size())) {
         // TODO[ice]: number of args don't match
@@ -323,11 +326,11 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
     }
 
     if (missing.isNotEmpty()) {
-      reporter.report(new MissingFieldError(expr.sourcePos(), missing.toImmutableSeq()));
+      reporter.report(new MissingFieldError(sourceFile, expr.sourcePos(), missing.toImmutableSeq()));
       throw new TyckInterruptedException();
     }
     if (conFields.isNotEmpty()) {
-      reporter.report(new NoSuchFieldError(expr.sourcePos(), conFields.map(Expr.Field::name).toImmutableSeq()));
+      reporter.report(new NoSuchFieldError(sourceFile, expr.sourcePos(), conFields.map(Expr.Field::name).toImmutableSeq()));
       throw new TyckInterruptedException();
     }
 
@@ -399,7 +402,7 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
     var name = Constants.ANONYMOUS_PREFIX;
     if (term == null) term = localCtx.freshHole(FormTerm.Univ.OMEGA, name, expr.sourcePos())._2;
     var freshHole = localCtx.freshHole(term, name, expr.sourcePos());
-    if (expr.explicit()) reporter.report(new Goal(expr, freshHole._1));
+    if (expr.explicit()) reporter.report(new Goal(sourceFile, expr, freshHole._1));
     return new Result(freshHole._2, term);
   }
 

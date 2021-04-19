@@ -13,6 +13,7 @@ import org.aya.concrete.visitor.StmtFixpoint;
 import org.aya.generic.Level;
 import org.aya.tyck.ExprTycker;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Unit;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +21,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author ice1000, kiva
  */
-public record Desugarer(@NotNull Reporter reporter, @NotNull BinOpSet opSet) implements StmtFixpoint<Unit> {
+public record Desugarer(
+  @NotNull Option<String> sourceFile,
+  @NotNull Reporter reporter,
+  @NotNull BinOpSet opSet
+) implements StmtFixpoint<Unit> {
   @Override public @NotNull Expr visitApp(@NotNull Expr.AppExpr expr, Unit unit) {
     if (expr.function() instanceof Expr.RawUnivExpr univ) return desugarUniv(expr, univ);
     return StmtFixpoint.super.visitApp(expr, unit);
@@ -80,7 +85,7 @@ public record Desugarer(@NotNull Reporter reporter, @NotNull BinOpSet opSet) imp
   @NotNull private ImmutableSeq<@NotNull Arg<Expr>> expectArgs(Expr.@NotNull AppExpr expr, int n) {
     var args = expr.arguments();
     if (!args.sizeEquals(n)) {
-      reporter.report(new LevelProblem.BadTypeExpr(expr, n));
+      reporter.report(new LevelProblem.BadTypeExpr(sourceFile, expr, n));
       throw new DesugarInterruptedException();
     }
     return args;
@@ -93,11 +98,11 @@ public record Desugarer(@NotNull Reporter reporter, @NotNull BinOpSet opSet) imp
       return levelVar(kind, uSuc.expr()).lift(1);
     } else if (expr instanceof Expr.RefExpr ref && ref.resolvedVar() instanceof LevelGenVar lv) {
       if (lv.kind() != kind) {
-        reporter.report(new LevelProblem.BadLevelKind(ref, lv.kind()));
+        reporter.report(new LevelProblem.BadLevelKind(sourceFile, ref, lv.kind()));
         throw new DesugarInterruptedException();
       } else return new Level.Reference<>(lv);
     } else {
-      reporter.report(new LevelProblem.BadLevelExpr(expr));
+      reporter.report(new LevelProblem.BadLevelExpr(sourceFile, expr));
       throw new ExprTycker.TyckerException();
     }
   }

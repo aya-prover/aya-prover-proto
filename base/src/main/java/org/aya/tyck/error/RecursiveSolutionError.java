@@ -7,12 +7,14 @@ import org.aya.api.error.SourcePos;
 import org.aya.api.ref.Var;
 import org.aya.core.term.Term;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ice1000
  */
 public record RecursiveSolutionError(
+  @NotNull Option<String> sourceFile,
   @NotNull Var hole,
   @NotNull Term term,
   @NotNull SourcePos sourcePos

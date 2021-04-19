@@ -172,13 +172,13 @@ public final class PatDefEq implements Term.BiVisitor<@NotNull Term, @NotNull Te
     }
     var solved = extract(lhs, rhs);
     if (solved == null) {
-      reporter.report(new HoleBadSpineWarn(lhs, defeq.pos));
+      reporter.report(new HoleBadSpineWarn(defeq.sourceFile(), lhs, defeq.pos));
       return false;
     }
     assert meta.body == null;
     var success = meta.solve(lhs.ref(), solved);
     if (!success) {
-      reporter.report(new RecursiveSolutionError(lhs.ref(), solved, untypedDefeq.defeq().pos));
+      reporter.report(new RecursiveSolutionError(defeq.sourceFile(), lhs.ref(), solved, untypedDefeq.defeq().pos));
       throw new ExprTycker.TyckInterruptedException();
     }
     return true;

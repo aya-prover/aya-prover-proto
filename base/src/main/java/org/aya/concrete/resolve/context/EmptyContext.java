@@ -7,6 +7,7 @@ import org.aya.api.error.SourcePos;
 import org.aya.api.ref.Var;
 import org.glavo.kala.collection.Seq;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * @implNote EmptyContext is the context storing the file's Reporter in the resolving stage.
  */
 public record EmptyContext(
+  @NotNull Option<String> sourceFile,
   @NotNull Reporter reporter
 ) implements Context {
   @Override public @Nullable Context parent() {

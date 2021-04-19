@@ -20,6 +20,7 @@ import org.glavo.kala.collection.Map;
 import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.Buffer;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple3;
 import org.glavo.kala.tuple.Unit;
 import org.jetbrains.annotations.*;
@@ -66,8 +67,8 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, FormTe
     return accept(new Substituter(subst, levelSubst), Unit.unit());
   }
 
-  @Override default @NotNull Term strip(@NotNull Reporter reporter) {
-    return accept(new Zonker(reporter), Unit.unit());
+  @Override default @NotNull Term strip(@NotNull Option<String> sourceFile, @NotNull Reporter reporter) {
+    return accept(new Zonker(sourceFile, reporter), Unit.unit());
   }
 
   @Override default int findUsages(@NotNull Var var) {

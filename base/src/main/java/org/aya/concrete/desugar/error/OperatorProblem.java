@@ -7,12 +7,14 @@ import org.aya.api.error.SourcePos;
 import org.aya.concrete.desugar.BinOpSet;
 import org.aya.pretty.doc.Doc;
 import org.glavo.kala.collection.mutable.Buffer;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 
 public final class OperatorProblem {
   public record AmbiguousPredError(
+    @NotNull Option<String> sourceFile,
     @NotNull String op1,
     @NotNull String op2,
     @NotNull SourcePos sourcePos
@@ -37,6 +39,7 @@ public final class OperatorProblem {
   }
 
   public record BindSelfError(
+    @NotNull Option<String> sourceFile,
     @NotNull SourcePos sourcePos
   ) implements Problem {
     @Override public @NotNull Severity level() {
@@ -49,6 +52,7 @@ public final class OperatorProblem {
   }
 
   public record CircleError(
+    @NotNull Option<String> sourceFile,
     @NotNull Buffer<BinOpSet.Elem> items
   ) implements Problem {
     @Override public @NotNull SourcePos sourcePos() {

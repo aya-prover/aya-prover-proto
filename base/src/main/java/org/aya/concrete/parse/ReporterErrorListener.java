@@ -5,6 +5,7 @@ package org.aya.concrete.parse;
 import org.antlr.v4.runtime.*;
 import org.aya.api.error.Reporter;
 import org.aya.api.error.SourcePos;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,8 +14,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ReporterErrorListener extends BaseErrorListener {
   private final @NotNull Reporter reporter;
+  private final @NotNull Option<String> sourceFile;
 
-  public ReporterErrorListener(@NotNull Reporter reporter) {
+  public ReporterErrorListener(@NotNull Option<String> sourceFile, @NotNull Reporter reporter) {
+    this.sourceFile = sourceFile;
     this.reporter = reporter;
   }
 
@@ -38,7 +41,7 @@ public class ReporterErrorListener extends BaseErrorListener {
       start = end = SourcePos.UNAVAILABLE_AND_FUCK_ANTLR4;
     }
 
-    reporter.report(new ParseError(
+    reporter.report(new ParseError(sourceFile,
       new SourcePos(
         start,
         end,
@@ -47,7 +50,7 @@ public class ReporterErrorListener extends BaseErrorListener {
   }
 
   private void lexerError(int line, int pos, String msg, LexerNoViableAltException e) {
-    reporter.report(new ParseError(
+    reporter.report(new ParseError(sourceFile,
       new SourcePos(
         e.getStartIndex(),
         e.getInputStream().index(),

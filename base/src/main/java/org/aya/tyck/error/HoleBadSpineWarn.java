@@ -6,12 +6,14 @@ import org.aya.api.error.Problem;
 import org.aya.api.error.SourcePos;
 import org.aya.core.term.CallTerm;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ice1000
  */
 public record HoleBadSpineWarn(
+  @NotNull Option<String> sourceFile,
   @NotNull CallTerm.Hole term,
   @NotNull SourcePos sourcePos
 ) implements Problem {

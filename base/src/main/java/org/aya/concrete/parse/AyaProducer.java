@@ -45,8 +45,10 @@ import java.util.stream.Stream;
  */
 public final class AyaProducer extends AyaBaseVisitor<Object> {
   private final @NotNull Reporter reporter;
+  private final @NotNull Option<String> sourceFile;
 
-  public AyaProducer(@NotNull Reporter reporter) {
+  public AyaProducer(@NotNull Option<String> sourceFile, @NotNull Reporter reporter) {
+    this.sourceFile = sourceFile;
     this.reporter = reporter;
   }
 
@@ -60,13 +62,13 @@ public final class AyaProducer extends AyaBaseVisitor<Object> {
     var core = PrimDef.PRIMITIVES.getOption(name);
     var sourcePos = sourcePosOf(id);
     if (core.isEmpty()) {
-      reporter.report(new UnknownPrimError(sourcePos, name));
+      reporter.report(new UnknownPrimError(sourceFile, sourcePos, name));
       throw new ParsingInterruptedException();
     }
     var type = ctx.type();
     var ref = core.get().ref();
     if (ref.concrete != null) {
-      reporter.report(new RedefinitionError(RedefinitionError.Kind.Prim, name, sourcePos));
+      reporter.report(new RedefinitionError(sourceFile, RedefinitionError.Kind.Prim, name, sourcePos));
       throw new ParsingInterruptedException();
     }
     return new Decl.PrimDecl(
@@ -220,13 +222,13 @@ public final class AyaProducer extends AyaBaseVisitor<Object> {
   private @NotNull String visitParamLiteral(AyaParser.LiteralContext ctx) {
     var idCtx = ctx.qualifiedId();
     if (idCtx == null) {
-      reporter.report(new ParseError(sourcePosOf(ctx),
+      reporter.report(new ParseError(sourceFile, sourcePosOf(ctx),
         "`" + ctx.getText() + "` is not a parameter name"));
       throw new ParsingInterruptedException();
     }
     var id = visitQualifiedId(idCtx);
     if (id.isQualified()) {
-      reporter.report(new ParseError(sourcePosOf(ctx),
+      reporter.report(new ParseError(sourceFile, sourcePosOf(ctx),
         "parameter name `" + ctx.getText() + "` should not be qualified"));
       throw new ParsingInterruptedException();
     }
@@ -538,7 +540,7 @@ public final class AyaProducer extends AyaBaseVisitor<Object> {
     // this apply does nothing on explicitness because we only used its bind
     var first = atoms.first().apply(true);
     if (!(first instanceof Pattern.Bind bind)) {
-      reporter.report(new ParseError(first.sourcePos(),
+      reporter.report(new ParseError(sourceFile, first.sourcePos(),
         "`" + first.toDoc().debugRender() + "` is not a constructor name"));
       throw new ParsingInterruptedException();
     }
@@ -595,7 +597,7 @@ public final class AyaProducer extends AyaBaseVisitor<Object> {
     var redefs = names.view().filterNot(n -> set.add(n._1)).toImmutableSeq();
     if (redefs.isNotEmpty()) {
       var last = redefs.last();
-      reporter.report(new RedefinitionError(kind, last._1, last._2));
+      reporter.report(new RedefinitionError(sourceFile, kind, last._1, last._2));
       throw new ParsingInterruptedException();
     }
   }

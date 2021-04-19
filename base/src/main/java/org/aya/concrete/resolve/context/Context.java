@@ -15,6 +15,7 @@ import org.aya.concrete.resolve.error.UnqualifiedNameNotFoundError;
 import org.aya.util.Constants;
 import org.glavo.kala.collection.Seq;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,8 @@ public interface Context {
   @Nullable Context parent();
 
   @NotNull Reporter reporter();
+
+  @NotNull Option<String> sourceFile();
 
   @Contract("_->fail") default <T> @NotNull T reportAndThrow(@NotNull Problem problem) {
     reporter().report(problem);
@@ -54,7 +57,7 @@ public interface Context {
   }
   default @NotNull Var getUnqualified(@NotNull String name, @NotNull SourcePos sourcePos) {
     var result = getUnqualifiedMaybe(name, sourcePos);
-    if (result == null) reportAndThrow(new UnqualifiedNameNotFoundError(name, sourcePos));
+    if (result == null) reportAndThrow(new UnqualifiedNameNotFoundError(sourceFile(), name, sourcePos));
     return result;
   }
 
@@ -69,7 +72,7 @@ public interface Context {
   }
   default @NotNull Var getQualified(@NotNull Seq<@NotNull String> modName, @NotNull String name, @NotNull SourcePos sourcePos) {
     var result = getQualifiedMaybe(modName, name, sourcePos);
-    if (result == null) reportAndThrow(new QualifiedNameNotFoundError(modName, name, sourcePos));
+    if (result == null) reportAndThrow(new QualifiedNameNotFoundError(sourceFile(), modName, name, sourcePos));
     return result;
   }
 
@@ -112,7 +115,7 @@ public interface Context {
     @NotNull Predicate<@Nullable Var> toWarn
   ) {
     if (toWarn.test(getUnqualifiedMaybe(name, sourcePos)) && !name.startsWith(Constants.ANONYMOUS_PREFIX)) {
-      reporter().report(new ShadowingWarn(name, sourcePos));
+      reporter().report(new ShadowingWarn(sourceFile(), name, sourcePos));
     }
     return new BindContext(this, name, ref);
   }

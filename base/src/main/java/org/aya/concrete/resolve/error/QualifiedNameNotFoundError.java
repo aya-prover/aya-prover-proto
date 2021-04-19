@@ -7,9 +7,11 @@ import org.aya.api.error.SourcePos;
 import org.aya.pretty.doc.Doc;
 import org.aya.util.Constants;
 import org.glavo.kala.collection.Seq;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 public record QualifiedNameNotFoundError(
+  @NotNull Option<String> sourceFile,
   @NotNull Seq<String> modName,
   @NotNull String name,
   @NotNull SourcePos sourcePos

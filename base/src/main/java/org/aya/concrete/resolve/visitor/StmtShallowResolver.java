@@ -13,6 +13,7 @@ import org.aya.concrete.resolve.error.ModNotFoundError;
 import org.aya.concrete.resolve.module.ModuleLoader;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.MutableHashMap;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple2;
 import org.glavo.kala.tuple.Unit;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author re-xyr
  */
-public final record StmtShallowResolver(@NotNull ModuleLoader loader)
+public final record StmtShallowResolver(@NotNull Option<String> sourceFile, @NotNull ModuleLoader loader)
   implements Stmt.Visitor<@NotNull ModuleContext, Unit> {
   @Override public Unit visitModule(Stmt.@NotNull ModuleStmt mod, @NotNull ModuleContext context) {
     var newCtx = context.derive();
@@ -33,7 +34,7 @@ public final record StmtShallowResolver(@NotNull ModuleLoader loader)
 
   @Override public Unit visitImport(Stmt.@NotNull ImportStmt cmd, @NotNull ModuleContext context) {
     var success = loader.load(cmd.path());
-    if (success == null) context.reportAndThrow(new ModNotFoundError(cmd.path(), cmd.sourcePos()));
+    if (success == null) context.reportAndThrow(new ModNotFoundError(sourceFile, cmd.path(), cmd.sourcePos()));
     context.importModule(cmd.path(), Stmt.Accessibility.Private, success, cmd.sourcePos());
     return Unit.unit();
   }

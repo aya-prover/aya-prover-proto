@@ -7,9 +7,11 @@ import org.aya.api.error.SourcePos;
 import org.aya.pretty.doc.Doc;
 import org.glavo.kala.collection.Seq;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 public record AmbiguousNameError(
+  @NotNull Option<String> sourceFile,
   @NotNull String name,
   @NotNull ImmutableSeq<Seq<String>> disambiguation,
   @NotNull SourcePos sourcePos

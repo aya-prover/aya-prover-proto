@@ -20,6 +20,7 @@ import org.aya.tyck.error.ClausesProblem;
 import org.aya.util.Ordering;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public record Conquer(
+  @NotNull Option<String> sourceFile,
   @NotNull ImmutableSeq<Matching<Pat, Term>> matchings,
   @NotNull SourcePos sourcePos,
   @NotNull LocalCtx localCtx,
@@ -36,13 +38,14 @@ public record Conquer(
   @NotNull ExprTycker tycker
 ) implements Pat.Visitor<Integer, Unit> {
   public static void against(
+    @NotNull Option<String> sourceFile,
     @NotNull ImmutableSeq<Matching<Pat, Term>> matchings, @NotNull LocalCtx localCtx,
     @NotNull ExprTycker tycker, @NotNull SourcePos pos, @NotNull Def.Signature signature
   ) {
     for (int i = 0, size = matchings.size(); i < size; i++) {
       var matching = matchings.get(i);
       for (var pat : matching.patterns())
-        pat.accept(new Conquer(matchings, pos, localCtx, signature, tycker), i);
+        pat.accept(new Conquer(sourceFile, matchings, pos, localCtx, signature, tycker), i);
     }
   }
 
@@ -78,13 +81,13 @@ public record Conquer(
     var volynskaya = Normalizer.INSTANCE.tryUnfoldClauses(NormalizeMode.WHNF, newArgs,
       new Substituter.TermSubst(MutableMap.of()), matchings);
     if (volynskaya == null) {
-      tycker.reporter.report(new ClausesProblem.Conditions(sourcePos, nth + 1, i, newBody, null));
+      tycker.reporter.report(new ClausesProblem.Conditions(sourceFile, sourcePos, nth + 1, i, newBody, null));
       throw new ExprTycker.TyckInterruptedException();
     }
     var unification = tycker.unifier(sourcePos, Ordering.Eq, localCtx)
       .compare(newBody, volynskaya, signature.result().subst(matchy));
     if (!unification) {
-      tycker.reporter.report(new ClausesProblem.Conditions(sourcePos, nth + 1, i, newBody, volynskaya));
+      tycker.reporter.report(new ClausesProblem.Conditions(sourceFile, sourcePos, nth + 1, i, newBody, volynskaya));
       throw new ExprTycker.TyckInterruptedException();
     }
   }

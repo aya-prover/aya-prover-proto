@@ -8,9 +8,11 @@ import org.aya.api.util.NormalizeMode;
 import org.aya.concrete.Expr;
 import org.aya.core.term.Term;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 public record UnifyError(
+  @NotNull Option<String> sourceFile,
   @NotNull Expr expr,
   @NotNull Term expected,
   @NotNull Term actual

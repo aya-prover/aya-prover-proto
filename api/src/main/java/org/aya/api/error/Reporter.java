@@ -3,6 +3,7 @@
 package org.aya.api.error;
 
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,6 +21,10 @@ public interface Reporter {
   @ApiStatus.Internal
   default void reportString(@NotNull String s) {
     report(new Problem() {
+      @Override public @NotNull Option<String> sourceFile() {
+        return Option.none();
+      }
+
       @Override public @NotNull SourcePos sourcePos() {
         return SourcePos.NONE;
       }

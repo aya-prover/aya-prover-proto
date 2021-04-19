@@ -20,6 +20,7 @@ import org.aya.tyck.trace.Trace;
 import org.glavo.kala.collection.Seq;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.function.CheckedConsumer;
 import org.glavo.kala.function.CheckedRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -36,9 +37,12 @@ public final record FileModuleLoader(
   @Override public @Nullable MutableMap<Seq<String>, MutableMap<String, Var>>
   load(@NotNull Seq<@NotNull String> path, @NotNull ModuleLoader recurseLoader) {
     try {
-      var parser = AyaParsing.parser(path.foldLeft(basePath, Path::resolve), reporter());
-      var program = new AyaProducer(reporter).visitProgram(parser.program());
-      return tyckModule(recurseLoader, program, reporter, () -> {}, defs -> {}, builder).exports();
+      var sourceFile = path.foldLeft(basePath, Path::resolve);
+      var sourceFileDisplay = Option.some(sourceFile.toAbsolutePath().toString());
+      var parser = AyaParsing.parser(sourceFileDisplay, sourceFile, reporter());
+      var producer = new AyaProducer(sourceFileDisplay, reporter);
+      var program = producer.visitProgram(parser.program());
+      return tyckModule(sourceFileDisplay, recurseLoader, program, reporter, () -> {}, defs -> {}, builder).exports();
     } catch (IOException e) {
       reporter.reportString(e.getMessage());
       return null;
@@ -52,6 +56,7 @@ public final record FileModuleLoader(
   }
 
   public static <E extends Exception> @NotNull ModuleContext tyckModule(
+    @NotNull Option<String> sourceFile,
     @NotNull ModuleLoader recurseLoader,
     @NotNull ImmutableSeq<Stmt> program,
     @NotNull Reporter reporter,
@@ -59,18 +64,18 @@ public final record FileModuleLoader(
     @NotNull CheckedConsumer<ImmutableSeq<Def>, E> onTycked,
     Trace.@Nullable Builder builder
   ) throws E {
-    var context = new EmptyContext(reporter).derive();
-    var shallowResolver = new StmtShallowResolver(recurseLoader);
+    var context = new EmptyContext(sourceFile, reporter).derive();
+    var shallowResolver = new StmtShallowResolver(sourceFile, recurseLoader);
     program.forEach(s -> s.accept(shallowResolver, context));
-    var opSet = new BinOpSet(reporter);
-    program.forEach(s -> s.resolve(opSet));
+    var opSet = new BinOpSet(sourceFile, reporter);
+    program.forEach(s -> s.resolve(sourceFile, opSet));
     opSet.sort();
-    program.forEach(s -> s.desugar(reporter, opSet));
+    program.forEach(s -> s.desugar(sourceFile, reporter, opSet));
     onResolved.runChecked();
     // in case we have un-messaged TyckException
     try (var delayedReporter = new DelayedReporter(reporter)) {
       var wellTyped = program
-        .mapNotNull(s -> s instanceof Signatured decl ? decl.tyck(delayedReporter, builder) : null);
+        .mapNotNull(s -> s instanceof Signatured decl ? decl.tyck(sourceFile, delayedReporter, builder) : null);
       onTycked.acceptChecked(wellTyped);
     }
     return context;

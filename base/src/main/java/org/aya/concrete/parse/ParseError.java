@@ -5,9 +5,11 @@ package org.aya.concrete.parse;
 import org.aya.api.error.Problem;
 import org.aya.api.error.SourcePos;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
-public record ParseError(@NotNull SourcePos sourcePos, @NotNull String message) implements Problem {
+public record ParseError(@NotNull Option<String> sourceFile, @NotNull SourcePos sourcePos,
+                         @NotNull String message) implements Problem {
   @Override public @NotNull Doc describe() {
     return Doc.plain("Parser error: " + message);
   }

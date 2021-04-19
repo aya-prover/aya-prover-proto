@@ -7,12 +7,14 @@ import org.aya.concrete.Expr;
 import org.aya.core.sort.LevelEqn;
 import org.aya.pretty.doc.Doc;
 import org.glavo.kala.collection.Collection;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ice1000
  */
 public record LevelSolverError(
+  @NotNull Option<String> sourceFile,
   @NotNull Expr expr,
   @NotNull Collection<? extends LevelEqn> eqn
 ) implements ExprProblem {

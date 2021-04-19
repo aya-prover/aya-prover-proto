@@ -9,6 +9,7 @@ import org.aya.core.term.Term;
 import org.aya.pretty.doc.Doc;
 import org.aya.tyck.pat.PatTree;
 import org.glavo.kala.collection.mutable.Buffer;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +19,7 @@ public sealed interface ClausesProblem extends Problem {
   }
 
   record Conditions(
+    @NotNull Option<String> sourceFile,
     @NotNull SourcePos sourcePos,
     int i, int j,
     @NotNull Term lhs, @Nullable Term rhs
@@ -42,6 +44,7 @@ public sealed interface ClausesProblem extends Problem {
   }
 
   record Confluence(
+    @NotNull Option<String> sourceFile,
     @NotNull SourcePos sourcePos,
     int i, int j,
     @NotNull Term lhs, @NotNull Term rhs
@@ -64,7 +67,8 @@ public sealed interface ClausesProblem extends Problem {
   /**
    * @author ice1000
    */
-  record MissingCase(@NotNull SourcePos sourcePos, @NotNull Buffer<PatTree> pats) implements ClausesProblem {
+  record MissingCase(@NotNull Option<String> sourceFile, @NotNull SourcePos sourcePos,
+                     @NotNull Buffer<PatTree> pats) implements ClausesProblem {
     @Override public @NotNull Doc describe() {
       return Doc.hcat(
         Doc.plain("Unhandled case: "),
@@ -73,7 +77,8 @@ public sealed interface ClausesProblem extends Problem {
     }
   }
 
-  record SplitInterval(@NotNull SourcePos sourcePos, @NotNull Pat pat) implements ClausesProblem {
+  record SplitInterval(@NotNull Option<String> sourceFile, @NotNull SourcePos sourcePos,
+                       @NotNull Pat pat) implements ClausesProblem {
     @Override public @NotNull Doc describe() {
       return Doc.hcat(
         Doc.plain("Cannot perform pattern matching `"),

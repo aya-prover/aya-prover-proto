@@ -10,6 +10,7 @@ import org.aya.concrete.Stmt;
 import org.aya.concrete.desugar.error.OperatorProblem;
 import org.aya.concrete.resolve.context.Context;
 import org.glavo.kala.collection.mutable.*;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple;
 import org.glavo.kala.tuple.Tuple2;
 import org.glavo.kala.tuple.Tuple3;
@@ -18,12 +19,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record BinOpSet(
+  @NotNull Option<String> sourceFile,
   @NotNull Reporter reporter,
   @NotNull MutableSet<Elem> ops,
   @NotNull MutableHashMap<Elem, MutableHashSet<Elem>> tighterGraph
 ) {
-  public BinOpSet(@NotNull Reporter reporter) {
-    this(reporter, MutableSet.of(), MutableHashMap.of());
+  public BinOpSet(@NotNull Option<String> sourceFile, @NotNull Reporter reporter) {
+    this(sourceFile, reporter, MutableSet.of(), MutableHashMap.of());
   }
 
   public void bind(@NotNull Tuple2<String, Decl.@NotNull OpDecl> op,
@@ -33,7 +35,7 @@ public record BinOpSet(
     var opElem = ensureHasElem(op._1, op._2, sourcePos);
     var targetElem = ensureHasElem(target._1, target._2, sourcePos);
     if (opElem == targetElem) {
-      reporter.report(new OperatorProblem.BindSelfError(sourcePos));
+      reporter.report(new OperatorProblem.BindSelfError(sourceFile, sourcePos));
       throw new Context.ResolvingInterruptedException();
     }
     if (pred == Stmt.BindPred.Tighter) addTighter(opElem, targetElem);
@@ -113,7 +115,7 @@ public record BinOpSet(
       ind.forEach((e, i) -> {
         if (i.value > 0) circle.append(e);
       });
-      reporter.report(new OperatorProblem.CircleError(circle));
+      reporter.report(new OperatorProblem.CircleError(sourceFile, circle));
       throw new Context.ResolvingInterruptedException();
     }
   }

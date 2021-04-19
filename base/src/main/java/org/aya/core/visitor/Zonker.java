@@ -9,6 +9,7 @@ import org.aya.core.term.CallTerm;
 import org.aya.core.term.Term;
 import org.aya.pretty.doc.Doc;
 import org.aya.tyck.ExprTycker;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Unit;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,17 +23,18 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author ice1000
  */
-public record Zonker(@NotNull Reporter reporter) implements TermFixpoint<Unit> {
+public record Zonker(@NotNull Option<String> sourceFile, @NotNull Reporter reporter) implements TermFixpoint<Unit> {
   @Contract(pure = true) @Override public @NotNull Term visitHole(@NotNull CallTerm.Hole term, Unit unit) {
     var sol = term.ref().core();
     if (sol.body == null) {
-      reporter.report(new UnsolvedMeta(sol.sourcePos));
+      reporter.report(new UnsolvedMeta(sourceFile, sol.sourcePos));
       throw new ExprTycker.TyckInterruptedException();
     }
     return sol.body.accept(this, Unit.unit());
   }
 
-  public static record UnsolvedMeta(@NotNull SourcePos sourcePos) implements Problem {
+  public static record UnsolvedMeta(@NotNull Option<String> sourceFile,
+                                    @NotNull SourcePos sourcePos) implements Problem {
     @Override public @NotNull Doc describe() {
       return Doc.plain("Unsolved meta");
     }

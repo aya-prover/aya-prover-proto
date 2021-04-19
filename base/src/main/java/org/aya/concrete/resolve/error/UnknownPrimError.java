@@ -5,9 +5,11 @@ package org.aya.concrete.resolve.error;
 import org.aya.api.error.Problem;
 import org.aya.api.error.SourcePos;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 public record UnknownPrimError(
+  @NotNull Option<String> sourceFile,
   @NotNull SourcePos sourcePos,
   @NotNull String name
 ) implements Problem {

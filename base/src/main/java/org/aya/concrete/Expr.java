@@ -21,6 +21,7 @@ import org.aya.generic.ParamLike;
 import org.aya.pretty.doc.Doc;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.control.Either;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple2;
 import org.glavo.kala.tuple.Unit;
 import org.jetbrains.annotations.Debug;
@@ -48,12 +49,14 @@ public sealed interface Expr extends ConcreteExpr {
   }
 
 
-  @Override default @NotNull Expr resolve(@NotNull Reporter reporter) {
-    return resolve(new EmptyContext(reporter));
+  @Override default @NotNull Expr resolve(@NotNull Option<String> sourceFile, @NotNull Reporter reporter) {
+    // TODO: this function is not used, consider removing
+    return resolve(new EmptyContext(sourceFile, reporter));
   }
 
-  @Override default @NotNull Expr desugar(@NotNull Reporter reporter) {
-    return accept(new Desugarer(reporter, new BinOpSet(reporter)), Unit.unit());
+  @Override default @NotNull Expr desugar(@NotNull Option<String> sourceFile, @NotNull Reporter reporter) {
+    // TODO: this function is not used, consider removing
+    return accept(new Desugarer(sourceFile, reporter, new BinOpSet(sourceFile, reporter)), Unit.unit());
   }
 
   @Override default @NotNull Doc toDoc() {

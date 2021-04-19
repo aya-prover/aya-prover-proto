@@ -8,6 +8,7 @@ import org.aya.concrete.Pattern;
 import org.aya.core.term.CallTerm;
 import org.aya.core.term.Term;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface PatternProblem extends Problem {
@@ -17,7 +18,8 @@ public sealed interface PatternProblem extends Problem {
     return pattern().sourcePos();
   }
 
-  record PossiblePat(@NotNull Pattern pattern, @NotNull CallTerm.ConHead available) implements PatternProblem {
+  record PossiblePat(@NotNull Option<String> sourceFile, @NotNull Pattern pattern,
+                     @NotNull CallTerm.ConHead available) implements PatternProblem {
     @Override public @NotNull Doc describe() {
       return Doc.hcat(
         Doc.plain("Absurd pattern does not fit here because `"),
@@ -31,7 +33,8 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-  record SplittingOnNonData(@NotNull Pattern pattern, @NotNull Term type) implements PatternProblem {
+  record SplittingOnNonData(@NotNull Option<String> sourceFile, @NotNull Pattern pattern,
+                            @NotNull Term type) implements PatternProblem {
     @Override public @NotNull Doc describe() {
       return Doc.hcat(
         Doc.plain("Cannot split on a non-inductive type `"),
@@ -47,7 +50,8 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-  record UnavailableCtor(@NotNull Pattern pattern, @NotNull Severity level) implements PatternProblem {
+  record UnavailableCtor(@NotNull Option<String> sourceFile, @NotNull Pattern pattern,
+                         @NotNull Severity level) implements PatternProblem {
     @Override public @NotNull Doc describe() {
       return Doc.hcat(
         Doc.plain("Cannot match with `"),
@@ -58,7 +62,7 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-  record UnknownCtor(@NotNull Pattern pattern) implements PatternProblem {
+  record UnknownCtor(@NotNull Option<String> sourceFile, @NotNull Pattern pattern) implements PatternProblem {
     @Override public @NotNull Doc describe() {
       return Doc.hcat(
         Doc.plain("Unknown constructor `"),

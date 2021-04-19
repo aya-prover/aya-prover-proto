@@ -17,6 +17,7 @@ import org.aya.util.Ordering;
 import org.glavo.kala.collection.SeqLike;
 import org.glavo.kala.collection.mutable.MutableHashMap;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Tuple2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,6 +45,10 @@ public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull 
 
   void traceEntrance(@NotNull Trace trace) {
     tracing(builder -> builder.shift(trace));
+  }
+
+  public @NotNull Option<String> sourceFile() {
+    return equations.sourceFile();
   }
 
   @Override public void traceEntrance(@NotNull Term type, @NotNull Term lhs, @NotNull Term rhs) {

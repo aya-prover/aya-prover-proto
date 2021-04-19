@@ -6,9 +6,11 @@ import org.aya.api.error.Problem;
 import org.aya.api.error.SourcePos;
 import org.aya.core.sort.LevelEqn;
 import org.aya.pretty.doc.Doc;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
 public record LevelMismatchError(
+  @NotNull Option<String> sourceFile,
   @NotNull SourcePos sourcePos,
   @NotNull LevelEqn eqn
 ) implements Problem {

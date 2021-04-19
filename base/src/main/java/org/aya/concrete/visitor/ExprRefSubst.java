@@ -9,6 +9,7 @@ import org.aya.concrete.resolve.error.UnqualifiedNameNotFoundError;
 import org.aya.tyck.ExprTycker;
 import org.glavo.kala.collection.mutable.MutableHashMap;
 import org.glavo.kala.collection.mutable.MutableHashSet;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Unit;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,18 +17,19 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public record ExprRefSubst(
+  @NotNull Option<String> sourceFile,
   @NotNull Reporter reporter,
   @NotNull MutableHashMap<Var, Var> good,
   @NotNull MutableHashSet<Var> bad
 ) implements ExprFixpoint<Unit>, Cloneable {
-  public ExprRefSubst(@NotNull Reporter reporter) {
-    this(reporter, MutableHashMap.of(), MutableHashSet.of());
+  public ExprRefSubst(@NotNull Option<String> sourceFile, @NotNull Reporter reporter) {
+    this(sourceFile, reporter, MutableHashMap.of(), MutableHashSet.of());
   }
 
   @Override public @NotNull Expr visitRef(@NotNull Expr.RefExpr expr, Unit unit) {
     var v = expr.resolvedVar();
     if (bad.contains(v)) {
-      reporter.report(new UnqualifiedNameNotFoundError(v.name(), expr.sourcePos()));
+      reporter.report(new UnqualifiedNameNotFoundError(sourceFile, v.name(), expr.sourcePos()));
       throw new ExprTycker.TyckInterruptedException();
     }
     var rv = good.getOption(v);
@@ -48,6 +50,6 @@ public record ExprRefSubst(
   }
 
   @SuppressWarnings("MethodDoesntCallSuperMethod") public @NotNull ExprRefSubst clone() {
-    return new ExprRefSubst(reporter, good, bad);
+    return new ExprRefSubst(sourceFile, reporter, good, bad);
   }
 }

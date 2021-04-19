@@ -26,6 +26,7 @@ import org.aya.tyck.trace.Trace;
 import org.aya.util.FP;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.control.Either;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.Unit;
 import org.glavo.kala.value.Ref;
 import org.jetbrains.annotations.NotNull;
@@ -40,11 +41,12 @@ import java.util.function.Consumer;
  * of expr tyckers.
  */
 public record StmtTycker(
+  @NotNull Option<String> sourceFile,
   @NotNull Reporter reporter,
   Trace.@Nullable Builder traceBuilder
 ) implements Signatured.Visitor<ExprTycker, Def> {
   public @NotNull ExprTycker newTycker() {
-    return new ExprTycker(reporter, traceBuilder);
+    return new ExprTycker(sourceFile, reporter, traceBuilder);
   }
 
   private void tracing(@NotNull Consumer<Trace.@NotNull Builder> consumer) {
@@ -128,9 +130,9 @@ public record StmtTycker(
     ImmutableSeq<@NotNull Matching<Pat, Term>> matchings, @NotNull SourcePos pos, boolean coverage
   ) {
     if (!matchings.isNotEmpty()) return;
-    var classification = PatClassifier.classify(elabClauses, tycker.reporter, pos, coverage);
-    PatClassifier.confluence(elabClauses, tycker, pos, signature.result(), classification);
-    Conquer.against(matchings, ctx, tycker, pos, signature);
+    var classification = PatClassifier.classify(sourceFile, elabClauses, tycker.reporter, pos, coverage);
+    PatClassifier.confluence(sourceFile, elabClauses, tycker, pos, signature.result(), classification);
+    Conquer.against(sourceFile, matchings, ctx, tycker, pos, signature);
   }
 
   @NotNull private ImmutableSeq<Pat.PrototypeClause> elabClauses(

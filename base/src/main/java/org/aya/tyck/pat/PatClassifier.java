@@ -19,6 +19,7 @@ import org.glavo.kala.collection.SeqView;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.Buffer;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.glavo.kala.tuple.primitive.IntObjTuple2;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -28,20 +29,23 @@ import org.jetbrains.annotations.Nullable;
  * @author ice1000, kiva
  */
 public record PatClassifier(
+  @NotNull Option<String> sourceFile,
   @NotNull Reporter reporter,
   @NotNull SourcePos pos,
   @NotNull PatTree.Builder builder
 ) {
   public static @NotNull ImmutableSeq<PatClass> classify(
+    @NotNull Option<String> sourceFile,
     @NotNull ImmutableSeq<Pat.@NotNull PrototypeClause> clauses,
     @NotNull Reporter reporter, @NotNull SourcePos pos, boolean coverage
   ) {
-    var classifier = new PatClassifier(reporter, pos, new PatTree.Builder());
+    var classifier = new PatClassifier(sourceFile, reporter, pos, new PatTree.Builder());
     return classifier.classifySub(clauses.mapIndexed((index, clause) ->
       new SubPats(clause.patterns(), index)), coverage);
   }
 
   public static void confluence(
+    @NotNull Option<String> sourceFile,
     @NotNull ImmutableSeq<Pat.@NotNull PrototypeClause> clauses,
     @NotNull ExprTycker tycker, @NotNull SourcePos pos,
     @NotNull Term result, @NotNull ImmutableSeq<PatClass> classification
@@ -63,7 +67,7 @@ public record PatClassifier(
         var rhsTerm = rhs.body().subst(rhsSubst);
         var unification = tycker.unifier(pos, Ordering.Eq, ctx).compare(lhsTerm, rhsTerm, result);
         if (!unification) {
-          tycker.reporter.report(new ClausesProblem.Confluence(pos, lhsInfo._1 + 1, rhsInfo._1 + 1, lhsTerm, rhsTerm));
+          tycker.reporter.report(new ClausesProblem.Confluence(sourceFile, pos, lhsInfo._1 + 1, rhsInfo._1 + 1, lhsTerm, rhsTerm));
           throw new ExprTycker.TyckInterruptedException();
         }
       }
@@ -99,7 +103,7 @@ public record PatClassifier(
       .firstOption();
     if (lrSplit.isDefined()) {
       if (coverage) {
-        reporter.report(new ClausesProblem.SplitInterval(pos, lrSplit.get()));
+        reporter.report(new ClausesProblem.SplitInterval(sourceFile, pos, lrSplit.get()));
         throw new ExprTycker.TyckInterruptedException();
       }
       for (var def : PrimDef.LEFT_RIGHT) {
@@ -143,7 +147,7 @@ public record PatClassifier(
       builder.shift(new PatTree(ctor.ref().name(), explicit));
       if (matches.isEmpty()) {
         if (coverage) {
-          reporter.report(new ClausesProblem.MissingCase(pos, builder.root()));
+          reporter.report(new ClausesProblem.MissingCase(sourceFile, pos, builder.root()));
           throw new ExprTycker.TyckInterruptedException();
         } else {
           builder.reduce();

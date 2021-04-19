@@ -8,6 +8,7 @@ import org.aya.api.ref.LocalVar;
 import org.aya.api.ref.Var;
 import org.glavo.kala.collection.Seq;
 import org.glavo.kala.collection.mutable.MutableMap;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +28,10 @@ public record BindContext(
 
   @Override public @NotNull Reporter reporter() {
     return parent.reporter();
+  }
+
+  @Override public @NotNull Option<String> sourceFile() {
+    return parent.sourceFile();
   }
 
   @Override public @Nullable Var getUnqualifiedLocalMaybe(@NotNull String name, @NotNull SourcePos sourcePos) {

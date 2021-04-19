@@ -11,6 +11,7 @@ import org.aya.generic.Matching;
 import org.aya.test.ThrowingReporter;
 import org.aya.tyck.pat.PatClassifier;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +25,7 @@ public class PatCCTest {
     @NotNull ImmutableSeq<Matching<Pat, Term>> clauses,
     @NotNull Reporter reporter, @NotNull SourcePos pos
   ) {
-    return PatClassifier.classify(clauses.map(Pat.PrototypeClause::prototypify), reporter, pos, true);
+    return PatClassifier.classify(Option.none(), clauses.map(Pat.PrototypeClause::prototypify), reporter, pos, true);
   }
 
   @Test public void addCC() {
