@@ -4,6 +4,7 @@ package org.aya.cli;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+import org.aya.api.error.DefaultLocator;
 import org.aya.prelude.GeneratedVersion;
 import org.aya.tyck.trace.MdUnicodeTrace;
 import org.aya.tyck.trace.Trace;
