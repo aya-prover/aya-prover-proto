@@ -8,6 +8,7 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.aya.api.error.StreamReporter;
 import org.aya.cli.CompilerFlags;
+import org.aya.cli.DefaultLocator;
 import org.aya.cli.SingleFileCompiler;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +51,7 @@ public record AyaBot(@NotNull TelegramBot bot) implements UpdatesListener {
       Files.writeString(file, txt, CHARSET);
       var hookOut = new ByteArrayOutputStream();
       var reporter = new StreamReporter(txt, new PrintStream(hookOut));
-      var e = new SingleFileCompiler(reporter, null)
+      var e = new SingleFileCompiler(new DefaultLocator(), reporter, null)
         .compile(file, new CompilerFlags(CompilerFlags.Message.ASCII, false, null, ImmutableSeq.of()));
       return hookOut.toString(CHARSET) + "\n\n Exited with " + e;
     } catch (IOException e) {

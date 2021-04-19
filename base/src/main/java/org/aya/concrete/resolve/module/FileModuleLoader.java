@@ -4,6 +4,7 @@ package org.aya.concrete.resolve.module;
 
 import org.aya.api.error.DelayedReporter;
 import org.aya.api.error.Reporter;
+import org.aya.api.error.SourceFileLocator;
 import org.aya.api.ref.Var;
 import org.aya.api.util.InternalException;
 import org.aya.api.util.InterruptException;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 public final record FileModuleLoader(
+  @NotNull SourceFileLocator locator,
   @NotNull Path basePath,
   @NotNull Reporter reporter,
   Trace.@Nullable Builder builder
@@ -38,7 +40,7 @@ public final record FileModuleLoader(
   load(@NotNull Seq<@NotNull String> path, @NotNull ModuleLoader recurseLoader) {
     try {
       var sourceFile = path.foldLeft(basePath, Path::resolve);
-      var sourceFileDisplay = Option.some(sourceFile.toAbsolutePath().toString());
+      var sourceFileDisplay = locator.locate(sourceFile);
       var parser = AyaParsing.parser(sourceFileDisplay, sourceFile, reporter());
       var producer = new AyaProducer(sourceFileDisplay, reporter);
       var program = producer.visitProgram(parser.program());

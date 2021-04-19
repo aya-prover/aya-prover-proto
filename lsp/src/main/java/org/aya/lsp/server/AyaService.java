@@ -6,6 +6,7 @@ import org.aya.api.error.Problem;
 import org.aya.api.error.Reporter;
 import org.aya.api.error.SourcePos;
 import org.aya.cli.CompilerFlags;
+import org.aya.cli.DefaultLocator;
 import org.aya.cli.SingleFileCompiler;
 import org.aya.core.def.Def;
 import org.aya.lsp.Log;
@@ -46,7 +47,7 @@ public class AyaService implements WorkspaceService, TextDocumentService {
   public HighlightResult loadFile(@NotNull String uri) {
     Log.d("Loading %s", uri);
     var reporter = new LspReporter();
-    var compiler = new SingleFileCompiler(reporter, null);
+    var compiler = new SingleFileCompiler(new DefaultLocator(), reporter, null);
     var compilerFlags = new CompilerFlags(
       CompilerFlags.Message.EMOJI, false, null,
       modulePath.toImmutableSeq());

@@ -4,6 +4,7 @@ package org.aya.cli;
 
 import org.aya.api.error.CountingReporter;
 import org.aya.api.error.Reporter;
+import org.aya.api.error.SourceFileLocator;
 import org.aya.api.util.InternalException;
 import org.aya.api.util.InterruptException;
 import org.aya.concrete.Decl;
@@ -20,7 +21,6 @@ import org.aya.pretty.doc.Docile;
 import org.aya.tyck.trace.Trace;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
 import org.glavo.kala.collection.mutable.Buffer;
-import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +30,8 @@ import java.nio.file.Path;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public record SingleFileCompiler(@NotNull Reporter reporter, Trace.@Nullable Builder builder) {
+public record SingleFileCompiler(@NotNull SourceFileLocator locator, @NotNull Reporter reporter,
+                                 Trace.@Nullable Builder builder) {
   public int compile(@NotNull Path sourceFile, @NotNull CompilerFlags flags) throws IOException {
     return compile(sourceFile, flags, null, null);
   }
@@ -40,7 +41,7 @@ public record SingleFileCompiler(@NotNull Reporter reporter, Trace.@Nullable Bui
                      @Nullable Consumer<ImmutableSeq<Stmt>> onResolved,
                      @Nullable Consumer<ImmutableSeq<Def>> onTycked) throws IOException {
     var reporter = new CountingReporter(this.reporter);
-    var sourceFileDisplay = Option.some(sourceFile.toAbsolutePath().toString());
+    var sourceFileDisplay = locator.locate(sourceFile);
     var parser = AyaParsing.parser(sourceFileDisplay, sourceFile, reporter);
     try {
       var producer = new AyaProducer(sourceFileDisplay, reporter);
@@ -48,7 +49,7 @@ public record SingleFileCompiler(@NotNull Reporter reporter, Trace.@Nullable Bui
       // [chuigda]: I suggest 80 columns, or we may detect terminal width with some library
       distill(sourceFile, flags.distillInfo(), program, CliArgs.DistillStage.raw);
       var loader = new ModuleListLoader(flags.modulePaths().map(path ->
-        new CachedModuleLoader(new FileModuleLoader(path, reporter, builder))));
+        new CachedModuleLoader(new FileModuleLoader(locator, path, reporter, builder))));
       FileModuleLoader.tyckModule(sourceFileDisplay, loader, program, reporter,
         () -> {
           distill(sourceFile, flags.distillInfo(), program, CliArgs.DistillStage.scoped);

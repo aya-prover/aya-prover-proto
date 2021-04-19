@@ -4,10 +4,12 @@ package org.aya.test;
 
 import org.aya.api.Global;
 import org.aya.api.error.CountingReporter;
+import org.aya.api.error.SourceFileLocator;
 import org.aya.api.error.StreamReporter;
 import org.aya.cli.CompilerFlags;
 import org.aya.cli.SingleFileCompiler;
 import org.glavo.kala.collection.immutable.ImmutableSeq;
+import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -23,7 +25,7 @@ import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestRunner {
+public class TestRunner implements SourceFileLocator {
   @BeforeAll public static void enterTestMode() {
     Global.enterTestMode();
   }
@@ -53,7 +55,7 @@ public class TestRunner {
         new PrintStream(hookOut, true, StandardCharsets.UTF_8)));
 
       System.out.print(file.getFileName() + " ---> ");
-      new SingleFileCompiler(reporter, null)
+      new SingleFileCompiler(this, reporter, null)
         .compile(file, new CompilerFlags(CompilerFlags.Message.ASCII, false, null, ImmutableSeq.of()));
 
       postRun(file, expectSuccess, hookOut.toString(StandardCharsets.UTF_8), reporter);
@@ -131,5 +133,9 @@ public class TestRunner {
 
   private String trimCRLF(String string) {
     return string.replaceAll("\\r\\n?", "\n");
+  }
+
+  @Override public @NotNull Option<String> locate(@NotNull Path path) {
+    return Option.some(path.toString());
   }
 }
