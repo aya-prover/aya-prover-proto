@@ -7,8 +7,6 @@ import org.aya.pretty.error.PrettyError;
 import org.glavo.kala.control.Option;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
-
 /**
  * @author ice1000
  */
@@ -28,6 +26,11 @@ public interface Problem {
     OTHER
   }
 
+  /**
+   * The file path of this problem, relative to module root.
+   *
+   * @return filePath if specified, {@link Option#none()} if it is from junit tests.
+   */
   @NotNull Option<String> sourceFile();
   @NotNull SourcePos sourcePos();
   @NotNull Doc describe();
@@ -39,12 +42,9 @@ public interface Problem {
     return Doc.empty();
   }
 
-  default @NotNull PrettyError toPrettyError(
-    @NotNull Path filePath,
-    @NotNull String sourceCode
-  ) {
+  default @NotNull PrettyError toPrettyError(@NotNull String sourceCode) {
     return new PrettyError(
-      filePath.toString(),
+      sourceFile().getOrDefault("<unknown-file>"),
       sourcePos().toSpan(sourceCode),
       switch (level()) {
         case WARN -> Doc.plain("Warning:");

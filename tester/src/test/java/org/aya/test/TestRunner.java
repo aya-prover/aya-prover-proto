@@ -48,7 +48,7 @@ public class TestRunner {
   private void runFile(@NotNull Path file, boolean expectSuccess) {
     try {
       var hookOut = new ByteArrayOutputStream();
-      var reporter = new CountingReporter(new StreamReporter(file,
+      var reporter = new CountingReporter(new StreamReporter(
         Files.readString(file),
         new PrintStream(hookOut, true, StandardCharsets.UTF_8)));
 
