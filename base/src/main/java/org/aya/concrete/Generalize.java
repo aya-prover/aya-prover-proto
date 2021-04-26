@@ -19,6 +19,7 @@ public sealed interface Generalize extends Stmt {
     default void traceExit(P p, R r) {
     }
     R visitLevels(@NotNull Generalize.Levels levels, P p);
+    R visitVariables(@NotNull Generalize.Variables variables, P p);
   }
 
   @Override default <P, R> R doAccept(Stmt.@NotNull Visitor<P, R> visitor, P p) {
@@ -34,6 +35,24 @@ public sealed interface Generalize extends Stmt {
   ) implements Generalize {
     @Override public <P, R> R doAccept(@NotNull Generalize.Visitor<P, R> visitor, P p) {
       return visitor.visitLevels(this, p);
+    }
+  }
+
+  /**
+   * Represents a variable statement.
+   * For instance, <code>variable A : Nat</code> defines a generalized variable that can bound an
+   * unbounded variables used in an {@link Expr} like <code>def add {a b : A} : A</code> later.
+   * @author AustinZhu
+   * @param sourcePos
+   * @param params
+   */
+  record Variables(
+    @NotNull SourcePos sourcePos,
+    @NotNull ImmutableSeq<Expr.Param> params
+  ) implements Generalize {
+    @Override
+    public <P, R> R doAccept(Generalize.@NotNull Visitor<P, R> visitor, P p) {
+      return visitor.visitVariables(this, p);
     }
   }
 }

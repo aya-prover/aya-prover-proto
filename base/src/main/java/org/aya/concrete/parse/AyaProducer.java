@@ -107,6 +107,15 @@ public final class AyaProducer extends AyaBaseVisitor<Object> {
       .collect(ImmutableSeq.factory()));
   }
 
+  @Override public Generalize visitGeneralize(AyaParser.GeneralizeContext ctx) {
+    var ids = visitIds(ctx.ids());
+    var type = visitType(ctx.type());
+    return new Generalize.Variables(
+      sourcePosOf(ctx),
+      ids.map(id -> new Expr.Param(id._1, new LocalVar(id._2), type, true)).collect(ImmutableSeq.factory())
+    );
+  }
+
   @Override public Stmt.@NotNull BindStmt visitBind(AyaParser.BindContext ctx) {
     return new Stmt.BindStmt(
       sourcePosOf(ctx),
