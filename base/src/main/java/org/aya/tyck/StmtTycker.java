@@ -82,7 +82,7 @@ public record StmtTycker(
         // TODO[ice]: Expect type and term
         throw new ExprTycker.TyckerException();
       }
-      var result = decl.result.accept(tycker, null).wellTyped();
+      var result = tycker.checkNoZonk(decl.result, null).wellTyped();
       var levelSubst = new LevelSubst.Simple(MutableMap.of());
       // Homotopy level goes first
       var levels = tycker.extractLevels();
@@ -92,7 +92,7 @@ public record StmtTycker(
       tycker.unifyTyThrowing(FormTerm.Pi.make(false, tele, result), target, decl.result);
       decl.signature = new Def.Signature(ImmutableSeq.empty(), levels, tele, result);
     } else if (decl.result != null) {
-      var result = decl.result.accept(tycker, null).wellTyped();
+      var result = tycker.checkNoZonk(decl.result, null).wellTyped();
       tycker.unifyTyThrowing(result, core.result(), decl.result);
     } else decl.signature = new Def.Signature(ImmutableSeq.empty(),
       ImmutableSeq.empty(), core.telescope(), core.result());
@@ -174,7 +174,7 @@ public record StmtTycker(
   @Override public StructDef.Field visitField(Decl.@NotNull StructField field, ExprTycker tycker) {
     var tele = checkTele(tycker, field.telescope, null);
     var structRef = field.structRef;
-    var result = field.result.accept(tycker, null).wellTyped();
+    var result = tycker.checkNoZonk(field.result, null).wellTyped();
     var structSig = structRef.concrete.signature;
     assert structSig != null;
     field.signature = new Def.Signature(ImmutableSeq.of(), structSig.sortParam(), tele, result);
@@ -182,7 +182,7 @@ public record StmtTycker(
     var patTycker = new PatTycker(tycker);
     var elabClauses = elabClauses(patTycker, null, field.signature, cumulativeCtx, field.clauses);
     var matchings = elabClauses.flatMap(Pat.PrototypeClause::deprototypify);
-    var body = field.body.map(e -> e.accept(tycker, result).wellTyped());
+    var body = field.body.map(e -> tycker.checkNoZonk(e, result).wellTyped());
     var elaborated = new StructDef.Field(structRef, field.ref, structSig.param(), tele, result, matchings, body, field.coerce);
     ensureConfluent(tycker, field.signature, cumulativeCtx, elabClauses, matchings, field.sourcePos, false);
     return elaborated;
