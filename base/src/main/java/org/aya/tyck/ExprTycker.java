@@ -102,7 +102,22 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
   }
 
   public @NotNull Result checkNoZonk(@NotNull Expr expr, @Nullable Term type) {
-    return expr.accept(this, type);
+    try {
+      return expr.accept(this, type);
+    } catch (TyckInterruptedException e) {
+      var inferred = expr.accept(this, null);
+      var inferredType = inferred.type.normalize(NormalizeMode.WHNF);
+      if (inferredType instanceof FormTerm.Pi pi && !pi.param().explicit()) {
+        return checkNoZonk(new Expr.AppExpr(
+          expr.sourcePos(),
+          expr,
+          ImmutableSeq.of(new Arg<>(new Expr.NamedArg(
+            null,
+            new Expr.HoleExpr(SourcePos.NONE, false, null)
+          ), false))), type);
+      }
+      throw e;
+    }
   }
 
   public @NotNull Result checkExpr(@NotNull Expr expr, @Nullable Term type) {
@@ -429,8 +444,9 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
   @Rule.Synth @Override public Result visitApp(Expr.@NotNull AppExpr expr, @Nullable Term term) {
     var f = checkNoZonk(expr.function(), null);
     var resultTerm = f.wellTyped;
-    if (!(f.type.normalize(NormalizeMode.WHNF) instanceof FormTerm.Pi piTerm))
+    if (!(f.type.normalize(NormalizeMode.WHNF) instanceof FormTerm.Pi piTerm)) {
       return wantButNo(expr, f.type, "pi type");
+    }
     var pi = piTerm;
     var subst = new Substituter.TermSubst(MutableMap.of());
     for (var iter = expr.arguments().iterator(); iter.hasNext(); ) {
