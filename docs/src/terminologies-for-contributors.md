@@ -7,7 +7,7 @@ Terminology | Meaning
 `decl` | concrete definition, see `org.aya.concrete.Decl`
 distill | pretty print or format/reformat, see `org.aya.core.visitor.CoreDistiller` and https://github.com/jonsterling/dreamtt/blob/master/frontend/Distiller.ml
 LSP | mainly Language Server Protocol
-resolve | resolve statements into expressions
+resolve | find the correct references to variables or definitions for each of the names that users use in their programs
 `stmt` | statement
 `subst` | substitute/substitution
 `tyck` | type check
