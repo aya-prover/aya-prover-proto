@@ -7,10 +7,7 @@ import com.jcabi.manifests.Manifests
 import net.mamoe.mirai.BotFactory
 import net.mamoe.mirai.alsoLogin
 import net.mamoe.mirai.event.subscribeMessages
-import net.mamoe.mirai.message.data.MessageChain
-import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.QuoteReply
-import net.mamoe.mirai.message.data.content
 import org.aya.api.error.CountingReporter
 import org.aya.api.error.StreamReporter
 import org.aya.cli.CompilerFlags
@@ -26,7 +23,7 @@ import java.nio.file.Paths
 
 object AyaQQBot {
   private val env = Files.readAllLines(Paths.get("env"))
-  private val bot = BotFactory.newBot(env[0].toLong(), env[1])
+  val bot = BotFactory.newBot(env[0].toLong(), env[1])
   init {
     Paths.get("tmp").let {
       if (!Files.exists(it))
@@ -61,23 +58,12 @@ object AyaQQBot {
   }
 }
 
-private fun MessageChain.plainText() =
-  filterIsInstance<PlainText>().joinToString { it.content }
-
-private inline fun error(f: () -> String): String {
-  return try {
-    f()
-  } catch (e: Exception) {
-    e.localizedMessage
-  }
-}
-
 private fun compile(text: String): String {
   val hookOut = ByteArrayOutputStream()
   val file = History.add(text.toByteArray(StandardCharsets.UTF_8))
-  val reporter = CountingReporter(StreamReporter(file, text, PrintStream(hookOut)))
-  val e = SingleFileCompiler(reporter, file, null)
-    .compile(CompilerFlags(ASCII, false, false, ImmutableSeq.of()))
+  val reporter = StreamReporter(PrintStream(hookOut))
+  val e = SingleFileCompiler(reporter, null, null)
+    .compile(file, CompilerFlags(ASCII, false, null, ImmutableSeq.of()))
   return "$hookOut\n\nExit with $e"
 }
 
