@@ -34,7 +34,14 @@ public final class Main {
       return;
     }
 
-    var inputFile = cli.inputFile;
+    var inputFileOrInvalidOption = cli.inputFile;
+    if (inputFileOrInvalidOption.startsWith("-")) {
+      System.err.println("Invalid option: " + inputFileOrInvalidOption + ". See --help for more info.");
+      return;
+    }
+
+    @SuppressWarnings("UnnecessaryLocalVariable")
+    var inputFile = inputFileOrInvalidOption;
     var message = cli.asciiOnly
       ? CompilerFlags.Message.ASCII
       : CompilerFlags.Message.EMOJI;
