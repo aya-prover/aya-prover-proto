@@ -124,9 +124,8 @@ public final class AyaProducer extends AyaBaseVisitor<Object> {
   }
 
   @Override public Either<QualifiedID, Decl.OpDecl> visitBindOp(AyaParser.BindOpContext ctx) {
-    var qualifiedId = ctx.qualifiedId();
-    return qualifiedId != null ? Either.left(visitQualifiedId(qualifiedId))
-      : Either.right(Decl.OpDecl.APP);
+    var qid = ctx.qualifiedId();
+    return qid != null ? Either.left(visitQualifiedId(qid)) : Either.right(Decl.OpDecl.APP);
   }
 
   @Override public @NotNull Sample visitSample(AyaParser.SampleContext ctx) {
