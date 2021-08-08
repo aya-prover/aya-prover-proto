@@ -43,7 +43,7 @@ decl : PRIVATE?
      | primDecl
      );
 
-assoc : INFIX
+assoc : infix
       | INFIXL
       | INFIXR
       | FIX
@@ -155,6 +155,7 @@ ids : ID*;
 type : COLON expr;
 
 // operators
-idFix : INFIX | POSTFIX | ID;
+idFix : infix | BACKTICK ID | ID;
+infix : BACKTICK ID BACKTICK;
 
 qualifiedId : ID (COLON2 ID)*;

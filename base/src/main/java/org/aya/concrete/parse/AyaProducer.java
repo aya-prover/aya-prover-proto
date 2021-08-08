@@ -745,8 +745,8 @@ public record AyaProducer(@NotNull SourceFile sourceFile, @NotNull Reporter repo
     if (ctx.FIX() != null) return new OpDecl.Operator(null, Assoc.Fix);
     if (ctx.FIXL() != null) return new OpDecl.Operator(null, Assoc.FixL);
     if (ctx.FIXR() != null) return new OpDecl.Operator(null, Assoc.FixR);
-    var infix = ctx.INFIX();
-    if (infix != null) return new OpDecl.Operator(infix.getText().replace("`", ""), Assoc.Infix);
+    var infix = ctx.infix();
+    if (infix != null) return new OpDecl.Operator(infix.ID().getText(), Assoc.Infix);
     if (ctx.INFIXL() != null) return new OpDecl.Operator(null, Assoc.InfixL);
     if (ctx.INFIXR() != null) return new OpDecl.Operator(null, Assoc.InfixR);
     if (ctx.TWIN() != null) return new OpDecl.Operator(null, Assoc.Twin);

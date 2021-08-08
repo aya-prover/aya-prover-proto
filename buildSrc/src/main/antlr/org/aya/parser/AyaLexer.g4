@@ -1,7 +1,6 @@
+// Copyright (c) 2020-2021 Yinsen (Tesla) Zhang.
+// Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 lexer grammar AyaLexer;
-
-INFIX : '`' ID '`';
-POSTFIX : '`' ID;
 
 // bind
 TIGHTER : 'tighter';
@@ -13,7 +12,6 @@ EXAMPLE : 'example';
 COUNTEREXAMPLE : 'counterexample';
 
 // associativities
-INFIXN : 'infix';
 INFIXL : 'infixl';
 INFIXR : 'infixr';
 FIX : 'fix';
@@ -69,6 +67,9 @@ BAR : '|';
 COMMA : ',';
 COLON : ':';
 COLON2 : '::';
+AT : '@';
+BACKTICK : '`';
+EMPH : '*';
 
 // markers
 LBRACE : '{';
@@ -90,10 +91,11 @@ fragment HEX_DIGIT : [0-9a-fA-F];
 fragment OCT_DIGIT : [0-8];
 
 // identifier
-fragment AYA_SIMPLE_LETTER : [~!@#$%^&*\-+=<>?/|[\u005Da-zA-Z_\u2200-\u22FF];
+fragment AYA_SIMPLE_LETTER : [~!@#$%^&\-+=<>?/|[\u005Da-zA-Z_\u2200-\u22FF];
 fragment AYA_UNICODE : [\u0080-\uFEFE] | [\uFF00-\u{10FFFF}]; // exclude U+FEFF which is a truly invisible char
 fragment AYA_LETTER : AYA_SIMPLE_LETTER | AYA_UNICODE;
-ID : AYA_LETTER (AYA_LETTER | [0-9'])*;
+AYA_LETTER2 : (AYA_LETTER | [0-9']);
+ID : AYA_LETTER AYA_LETTER2*;
 
 // whitespaces
 WS : [ \t\r\n]+ -> channel(HIDDEN);
