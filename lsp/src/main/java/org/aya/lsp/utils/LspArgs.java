@@ -6,7 +6,7 @@ import org.aya.prelude.GeneratedVersion;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-import static org.aya.cli.PicocliUtils.CANDIDATES_ON_A_NEW_LINE;
+import static org.aya.cli.utils.PicocliUtils.CANDIDATES_ON_A_NEW_LINE;
 
 @Command(name = "aya-lsp",
   mixinStandardHelpOptions = true,
@@ -19,7 +19,7 @@ public class LspArgs {
   public Mode mode;
   @Option(names = {"-H", "--host"}, description = "Specify hostname.", defaultValue = "localhost")
   public String host;
-  @Option(names = {"-p", "--port"}, description = "Specify port.")
+  @Option(names = {"-p", "--port"}, description = "Specify port.", defaultValue = "11451")
   public int port;
 
   public enum Mode {

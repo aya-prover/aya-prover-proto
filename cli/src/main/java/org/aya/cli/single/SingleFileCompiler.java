@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2021 Yinsen (Tesla) Zhang.
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
-package org.aya.cli;
+package org.aya.cli.single;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.Buffer;
@@ -11,12 +11,12 @@ import org.aya.api.error.Reporter;
 import org.aya.api.error.SourceFileLocator;
 import org.aya.api.util.InternalException;
 import org.aya.api.util.InterruptException;
+import org.aya.cli.utils.MainArgs;
 import org.aya.concrete.parse.AyaParsing;
 import org.aya.concrete.resolve.module.CachedModuleLoader;
 import org.aya.concrete.resolve.module.FileModuleLoader;
 import org.aya.concrete.resolve.module.ModuleListLoader;
 import org.aya.concrete.stmt.Decl;
-import org.aya.concrete.stmt.Stmt;
 import org.aya.core.def.Def;
 import org.aya.core.def.PrimDef;
 import org.aya.pretty.backend.string.StringPrinterConfig;
@@ -28,40 +28,34 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
 public record SingleFileCompiler(
   @NotNull Reporter reporter,
   @Nullable SourceFileLocator locator,
   Trace.@Nullable Builder builder
 ) {
-  public int compile(@NotNull Path sourceFile, @NotNull CompilerFlags flags) throws IOException {
-    return compile(sourceFile, flags, stmts -> {}, (stmts, defs) -> {});
-  }
-
   public int compile(
-    @NotNull Path sourceFile, @NotNull CompilerFlags flags,
-    @NotNull Consumer<ImmutableSeq<Stmt>> onResolved,
-    @NotNull BiConsumer<ImmutableSeq<Stmt>, ImmutableSeq<Def>> onTycked
+    @NotNull Path sourceFile,
+    @NotNull CompilerFlags flags,
+    @Nullable FileModuleLoader.FileModuleLoaderCallback moduleCallback
   ) throws IOException {
     var reporter = new CountingReporter(this.reporter);
     var locator = this.locator != null ? this.locator : new SourceFileLocator.Module(flags.modulePaths());
     try {
       var program = AyaParsing.program(locator, reporter, sourceFile);
       var distillInfo = flags.distillInfo();
-      distill(sourceFile, distillInfo, program, CliArgs.DistillStage.raw);
+      distill(sourceFile, distillInfo, program, MainArgs.DistillStage.raw);
       var loader = new ModuleListLoader(flags.modulePaths().view().map(path ->
-        new CachedModuleLoader(new FileModuleLoader(locator, path, reporter, builder))).toImmutableSeq());
+        new CachedModuleLoader(new FileModuleLoader(locator, path, reporter, moduleCallback, builder))).toImmutableSeq());
       FileModuleLoader.tyckModule(ImmutableSeq.of("Mian"), loader, program, reporter,
-        () -> {
-          distill(sourceFile, distillInfo, program, CliArgs.DistillStage.scoped);
-          onResolved.accept(program);
+        stmts -> {
+          distill(sourceFile, distillInfo, program, MainArgs.DistillStage.scoped);
+          if (moduleCallback != null) moduleCallback.onResolved(sourceFile, program);
         },
         defs -> {
-          distill(sourceFile, distillInfo, defs, CliArgs.DistillStage.typed);
-          onTycked.accept(program, defs);
+          distill(sourceFile, distillInfo, defs, MainArgs.DistillStage.typed);
+          if (moduleCallback != null) moduleCallback.onTycked(sourceFile, program, defs);
         }, builder);
     } catch (InternalException e) {
       FileModuleLoader.handleInternalError(e);
@@ -86,7 +80,7 @@ public record SingleFileCompiler(
     @NotNull Path sourceFile,
     @Nullable CompilerFlags.DistillInfo flags,
     ImmutableSeq<? extends AyaDocile> doc,
-    @NotNull CliArgs.DistillStage currentStage
+    @NotNull MainArgs.DistillStage currentStage
   ) throws IOException {
     if (flags == null || currentStage != flags.distillStage()) return;
     var ayaFileName = sourceFile.getFileName().toString();

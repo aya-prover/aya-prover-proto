@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2021 Yinsen (Tesla) Zhang.
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
-package org.aya.cli;
+package org.aya.cli.utils;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.prelude.GeneratedVersion;
@@ -10,13 +10,13 @@ import picocli.CommandLine.Parameters;
 
 import java.util.List;
 
-import static org.aya.cli.PicocliUtils.CANDIDATES_ON_A_NEW_LINE;
+import static org.aya.cli.utils.PicocliUtils.CANDIDATES_ON_A_NEW_LINE;
 
 @Command(name = "aya",
   mixinStandardHelpOptions = true,
   version = "Aya v" + GeneratedVersion.VERSION_STRING,
   showDefaultValues = true)
-public class CliArgs {
+public class MainArgs {
   @Option(names = {"--interrupted-trace"}, hidden = true)
   public boolean interruptedTrace;
   @Option(names = {"--pretty-stage"}, description = "Pretty print the code in a certain stage." + CANDIDATES_ON_A_NEW_LINE)
@@ -31,6 +31,8 @@ public class CliArgs {
   public boolean asciiOnly;
   @Option(names = {"--module-path"}, description = "Search for module under this path.")
   public List<String> modulePaths;
+  @Option(names = {"--make"}, description = "Compile a library")
+  public boolean isLibrary;
   @Parameters(paramLabel = "<input-file>")
   public String inputFile;
 
