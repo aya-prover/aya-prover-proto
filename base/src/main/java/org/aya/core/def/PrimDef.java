@@ -13,6 +13,7 @@ import org.aya.api.ref.LevelGenVar;
 import org.aya.api.ref.LocalVar;
 import org.aya.api.util.Arg;
 import org.aya.concrete.stmt.Decl;
+import org.aya.core.pat.Pat;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.*;
 import org.aya.generic.Level;
@@ -69,47 +70,61 @@ public final class PrimDef extends TopLevelDef {
     private PrimFactory() {
     }
 
-    private static @NotNull Term arcoe(CallTerm.@NotNull Prim prim) {
-      var args = prim.args();
-      var argBase = args.get(1).term();
-      var argI = args.get(2).term();
-      var left = INSTANCE.getOption(LEFT);
-      if (argI instanceof CallTerm.Prim primCall && left.isNotEmpty() && primCall.ref() == left.get().ref)
-        return argBase;
-      var argA = args.get(0).term();
-      if (argA instanceof IntroTerm.Lambda lambda && lambda.body().findUsages(lambda.param().ref()) == 0)
-        return argBase;
-      return prim;
-    }
-
-    private static @NotNull Term invol(CallTerm.@NotNull Prim prim) {
-      var arg = prim.args().get(0).term();
-      if (arg instanceof CallTerm.Prim primCall) {
-        var left = INSTANCE.getOption(LEFT);
-        var right = INSTANCE.getOption(RIGHT);
-        assert left.isNotEmpty() && right.isNotEmpty();
-        if (primCall.ref() == left.get().ref)
-          return new CallTerm.Prim(right.get().ref, ImmutableSeq.empty(), ImmutableSeq.empty());
-        if (primCall.ref() == right.get().ref)
-          return new CallTerm.Prim(left.get().ref, ImmutableSeq.empty(), ImmutableSeq.empty());
-      }
-      return prim;
-    }
-
     private static final @NotNull Map<@NotNull String, @NotNull Supplier<@NotNull PrimDef>> SUPPLIERS;
+
+    public static final @NotNull Map<@NotNull String, @NotNull Function<CallTerm.@NotNull Prim, @NotNull Term>> UNFOLD
+      = ImmutableMap.ofEntries(
+        Tuple.of(INTERVAL, prim -> prim),
+        Tuple.of(LEFT, prim -> prim),
+        Tuple.of(RIGHT, prim -> prim),
+        Tuple.of(ARCOE, prim -> {
+          var args = prim.args();
+          var argBase = args.get(1).term();
+          var argI = args.get(2).term();
+          var left = INSTANCE.getOption(LEFT);
+          if (argI instanceof CallTerm.Prim primCall && left.isNotEmpty() && primCall.ref() == left.get().ref)
+            return argBase;
+          var argA = args.get(0).term();
+          if (argA instanceof IntroTerm.Lambda lambda && lambda.body().findUsages(lambda.param().ref()) == 0)
+            return argBase;
+          return prim;
+        }),
+        Tuple.of(INVOL, prim -> {
+          var arg = prim.args().get(0).term();
+          if (arg instanceof CallTerm.Prim primCall) {
+            var left = INSTANCE.getOption(LEFT);
+            var right = INSTANCE.getOption(RIGHT);
+            assert left.isNotEmpty() && right.isNotEmpty();
+            if (primCall.ref() == left.get().ref)
+              return new CallTerm.Prim(right.get().ref, ImmutableSeq.empty(), ImmutableSeq.empty());
+            if (primCall.ref() == right.get().ref)
+              return new CallTerm.Prim(left.get().ref, ImmutableSeq.empty(), ImmutableSeq.empty());
+          }
+          return prim;
+        })
+      );
+
+    private static final @NotNull Map<@NotNull String, @NotNull ImmutableSeq<@NotNull String>> DEPENDENCY = ImmutableMap.ofEntries(
+      Tuple.of(INTERVAL, ImmutableSeq.empty()),
+      Tuple.of(LEFT, ImmutableSeq.of(INTERVAL)),
+      Tuple.of(RIGHT, ImmutableSeq.of(INTERVAL)),
+      Tuple.of(ARCOE, ImmutableSeq.empty()),
+      Tuple.of(INVOL, ImmutableSeq.empty())
+    );
 
     static {
       Supplier<CallTerm.Prim> intervalCallSupplier =
         () -> new CallTerm.Prim(INSTANCE.getOrCreate(INTERVAL).ref(),
           ImmutableSeq.empty(), ImmutableSeq.empty());
 
+
       SUPPLIERS = ImmutableMap.ofEntries(
         Tuple.of(INTERVAL, () -> new PrimDef(ImmutableSeq.empty(), ImmutableSeq.empty(),
-          new FormTerm.Univ(new Sort(new Level.Constant<>(0), Sort.INF_LVL)), prim -> prim, INTERVAL)),
+          new FormTerm.Univ(new Sort(new Level.Constant<>(0), Sort.INF_LVL)), UNFOLD.get(INTERVAL), INTERVAL)),
         Tuple.of(LEFT, () -> new PrimDef(ImmutableSeq.empty(),
-          ImmutableSeq.empty(), intervalCallSupplier.get(), prim -> prim, LEFT)),
+          ImmutableSeq.empty(), intervalCallSupplier.get(), UNFOLD.get(LEFT), LEFT)),
         Tuple.of(RIGHT, () -> new PrimDef(ImmutableSeq.empty(), ImmutableSeq.empty(),
-          intervalCallSupplier.get(), prim -> prim, RIGHT)),
+          intervalCallSupplier.get(), UNFOLD.get(RIGHT), RIGHT)),
         Tuple.of(ARCOE, () -> {
           var paramA = new LocalVar("A");
           var paramIToATy = new Term.Param(new LocalVar(Constants.ANONYMOUS_PREFIX), intervalCallSupplier.get(), true);
@@ -129,13 +144,13 @@ public final class PrimDef extends TopLevelDef {
             ),
             ImmutableSeq.of(homotopy, universe),
             new ElimTerm.App(aRef, new Arg<>(new RefTerm(paramI, intervalCallSupplier.get()), true)),
-            PrimFactory::arcoe, "arcoe");
+            UNFOLD.get(ARCOE), "arcoe");
         }),
         Tuple.of(INVOL, () -> {
           CallTerm.Prim intervalCall = new CallTerm.Prim(INSTANCE.getOrCreate(INTERVAL).ref(), ImmutableSeq.empty(), ImmutableSeq.empty());
           return new PrimDef(
             ImmutableSeq.of(new Term.Param(new LocalVar("i"), intervalCallSupplier.get(), true)), ImmutableSeq.empty(),
-            intervalCall, PrimFactory::invol, INVOL);
+            intervalCall, UNFOLD.get(INVOL), INVOL);
         })
       );
     }
@@ -152,14 +167,6 @@ public final class PrimDef extends TopLevelDef {
 
       return rst;
     }
-
-    private static final @NotNull Map<@NotNull String, @NotNull ImmutableSeq<@NotNull String>> DEPENDENCY = ImmutableMap.ofEntries(
-      Tuple.of(INTERVAL, ImmutableSeq.empty()),
-      Tuple.of(LEFT, ImmutableSeq.of(INTERVAL)),
-      Tuple.of(RIGHT, ImmutableSeq.of(INTERVAL)),
-      Tuple.of(ARCOE, ImmutableSeq.empty()),
-      Tuple.of(INVOL, ImmutableSeq.empty())
-    );
 
     public @NotNull Option<PrimDef> getOption(@NotNull String name) {
       return defs.getOption(name);
