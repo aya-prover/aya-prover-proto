@@ -4,11 +4,11 @@ package org.aya.truffle;
 
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple2;
-import org.aya.api.ref.Var;
 import org.aya.core.def.Def;
+import org.aya.truffle.node.AyaRootNode;
+import org.aya.truffle.node.AyaNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,5 +24,20 @@ public final class AyaTruffleLanguage extends TruffleLanguage<Void> {
   @Override
   protected @Nullable Void createContext(Env env) {
     return null;
+  }
+
+  public @NotNull Context runDefs(@NotNull ImmutableSeq<Def> defs) {
+    var global = new Telescope(this);
+    var transpiler = new Transpiler(global);
+    var slotWithDefs = defs.map(def -> new Tuple2<>(global.add(def.ref()), def));
+    var nodes = slotWithDefs.view()
+      .<AyaNode>map(x -> transpiler.transpileDef(x._1, x._2))
+      .appended(new AyaNode.FrameGetterNode())
+      .toImmutableSeq().toArray(AyaNode.class);
+    var rootNode = AyaRootNode.create(global, nodes)
+      .createDirectCallNode();
+    var frame = (MaterializedFrame) rootNode.call();
+    assert frame.getFrameDescriptor() == global.frameDescriptor();
+    return new Context(global, frame);
   }
 }
