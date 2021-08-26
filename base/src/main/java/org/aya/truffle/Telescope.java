@@ -33,7 +33,7 @@ public record Telescope(@NotNull AyaTruffleLanguage lang, @Nullable Telescope pa
   }
 
   public @NotNull Slot get(@NotNull Var identifier) {
-    Telescope telescope = this;
+    var telescope = this;
     int level = 0;
     while (telescope != null) {
       var result = telescope.frameDescriptor.findFrameSlot(identifier);

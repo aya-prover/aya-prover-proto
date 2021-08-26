@@ -3,8 +3,9 @@
 package org.aya.truffle;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import kala.collection.Seq;
 import kala.collection.immutable.ImmutableMap;
-import kala.tuple.Tuple2;
+import kala.tuple.Tuple;
 import org.aya.api.ref.Var;
 import org.aya.core.term.Term;
 import org.jetbrains.annotations.NotNull;
@@ -13,10 +14,8 @@ import org.jetbrains.annotations.NotNull;
  * @author zaoqi
  */
 public record Context(@NotNull Telescope telescope, @NotNull MaterializedFrame frame) {
-  public Context(@NotNull Telescope telescope, @NotNull MaterializedFrame frame) {
+  public Context {
     assert frame.getFrameDescriptor() == telescope.frameDescriptor();
-    this.telescope = telescope;
-    this.frame = frame;
   }
 
   public @NotNull Object run(@NotNull Term term) {
@@ -24,19 +23,18 @@ public record Context(@NotNull Telescope telescope, @NotNull MaterializedFrame f
   }
 
   public @NotNull ImmutableMap<Var, Object> toMap() {
-    var global = this.telescope();
-    var frame = this.frame();
-    assert frame.getFrameDescriptor() == global.frameDescriptor();
-    var defs = global.frameDescriptor().getIdentifiers();
-    return defs.stream().map(def -> {
-      Var id = (Var) def;
-      return new Tuple2<>(id, frame.getValue(global.getLvl0(id)));
-    }).collect(ImmutableMap.collector(x -> x.component1(), x -> x.component2()));
+    var global = telescope();
+    var frame = frame();
+    var globalDescriptor = global.frameDescriptor();
+    assert frame.getFrameDescriptor() == globalDescriptor;
+    var defs = Seq.from(globalDescriptor.getIdentifiers());
+    return defs.view()
+      .map(def -> (Var) def)
+      .map(def -> Tuple.of(def, frame.getValue(global.getLvl0(def))))
+      .toImmutableMap();
   }
 
   public @NotNull ImmutableMap<String, Object> toStrMap() {
-    var map = this.toMap();
-    return map.view().map((k, v) -> new Tuple2<>(k.name(), v))
-      .collect(ImmutableMap.collector(x -> x.component1(), x -> x.component2()));
+    return toMap().view().map((k, v) -> Tuple.of(k.name(), v)).toImmutableMap();
   }
 }

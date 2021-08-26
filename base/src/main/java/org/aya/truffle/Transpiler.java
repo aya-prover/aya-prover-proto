@@ -43,7 +43,7 @@ public record Transpiler(@NotNull Telescope telescope) implements Term.Visitor<U
     assert slot.getIdentifier() == def.ref();
     return switch (def) {
       case PrimDef prim -> new DeclNode(slot, this.transpile(prim.result()));
-      case FnDef fn -> fn.body.fold(term -> this.buildTermFn(slot, fn.telescope.map(x -> x.ref()), b -> b.transpile(term)),
+      case FnDef fn -> fn.body.fold(term -> this.buildTermFn(slot, fn.telescope.map(Term.Param::ref), b -> b.transpile(term)),
         matching -> this.buildMatchingFn(slot, fn.telescope, matching));
       case StructDef struct -> new DeclNode(slot,
         StructDeclNode.create(this,
@@ -128,14 +128,12 @@ public record Transpiler(@NotNull Telescope telescope) implements Term.Visitor<U
 
   public @NotNull AyaNode matching(@NotNull Term of, @NotNull Pat pat, @NotNull Function<Transpiler, AyaNode> body, @NotNull Function<Transpiler, AyaNode> otherwise) {
     var self = this;
-    return pat.accept(new Pat.Visitor<Unit, AyaNode>() {
-      @Override
-      public @NotNull AyaNode visitBind(Pat.@NotNull Bind bind, Unit unit) {
+    return pat.accept(new Pat.Visitor<>() {
+      @Override public @NotNull AyaNode visitBind(Pat.@NotNull Bind bind, Unit unit) {
         return new ElimNode.App(new IntroNode.Lambda(self, bind.as(), body), self.transpile(of));
       }
 
-      @Override
-      public @NotNull AyaNode visitTuple(Pat.@NotNull Tuple tuple, Unit unit) {
+      @Override public @NotNull AyaNode visitTuple(Pat.@NotNull Tuple tuple, Unit unit) {
         var ofs = tuple.pats().<Term>mapIndexed((i, p) -> new ElimTerm.Proj(of, i + 1)).view();
         var pats = tuple.pats().view();
         if (tuple.as() == null) {
@@ -152,7 +150,7 @@ public record Transpiler(@NotNull Telescope telescope) implements Term.Visitor<U
         var len = ctor.params().size();
         assert len == data.ctors()[tag];
         // TODO: rewrite this hackish code
-        var ids = ctor.params().view().<LocalVar>map(GenVar::createFromObject).prepended(ctor.as() == null ? GenVar.create() : ctor.as()).toImmutableSeq();
+        var ids = ctor.params().view().map(GenVar::createFromObject).prepended(ctor.as() == null ? GenVar.create() : ctor.as()).toImmutableSeq();
         var placeholder = new ErrorTerm(new Doc.Empty(), true);
         Function<Transpiler, AyaNode> continuation = b -> b.matching(ids.<Term>map(x -> new RefTerm(x, placeholder)).view(),
           ctor.params().prepended(new Pat.Bind(true, ctor.as() == null ? GenVar.create() : ctor.as(), placeholder)).view(),
