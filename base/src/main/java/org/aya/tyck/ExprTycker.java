@@ -221,7 +221,7 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
       var conVar = (DefVar<CtorDef, Decl.DataDecl.DataCtor>) var;
       var level = levelStuffs(pos, conVar);
       var telescopes = CtorDef.telescopes(conVar, level._2);
-      var tele = Term.Param.subst(Def.defTele(conVar), level._1);
+      var tele = Term.Param.subst(Def.defTele(conVar), level._1).toImmutableSeq();
       var type = FormTerm.Pi.make(tele, Def.defResult(conVar).subst(Substituter.TermSubst.EMPTY, level._1));
       var body = telescopes.toConCall(conVar);
       return new Result(IntroTerm.Lambda.make(tele, body), type);
@@ -246,13 +246,11 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
   defCall(@NotNull SourcePos pos, DefVar<D, S> defVar, CallTerm.Factory<D, S> function) {
     var level = levelStuffs(pos, defVar);
     var tele = Term.Param.subst(Def.defTele(defVar), level._1);
+    var teleRenamed = tele.map(Term.Param::rename);
     // unbound these abstracted variables
-    // ice: should we rename the vars in this telescope? Probably not.
-    var body = function.make(defVar,
-      level._2,
-      tele.map(Term.Param::toArg));
+    var body = function.make(defVar, level._2, teleRenamed.map(Term.Param::toArg));
     var type = FormTerm.Pi.make(tele, Def.defResult(defVar).subst(Substituter.TermSubst.EMPTY, level._1));
-    return new Result(IntroTerm.Lambda.make(tele, body), type);
+    return new Result(IntroTerm.Lambda.make(teleRenamed, body), type);
   }
 
   private @NotNull Tuple2<LevelSubst.Simple, ImmutableSeq<Sort.CoreLevel>>
@@ -337,8 +335,13 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
         throw new TyckerException();
       }
       var result = type.accept(this, against);
-      resultTele.append(Tuple.of(tuple.ref(), tuple.explicit(), result.wellTyped));
+      var ref = tuple.ref();
+      localCtx.put(ref, result.wellTyped);
+      resultTele.append(Tuple.of(ref, tuple.explicit(), result.wellTyped));
     });
+    expr.params().view()
+      .map(Expr.Param::ref)
+      .forEach(localCtx.localMap()::remove);
     return new Result(new FormTerm.Sigma(Term.Param.fromBuffer(resultTele)), against);
   }
 
@@ -549,7 +552,7 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
         againstTele = againstTele.drop(1);
         if (againstTele.isNotEmpty()) {
           final var subst = new Substituter.TermSubst(ref, result.wellTyped);
-          againstTele = Term.Param.subst(againstTele, subst).view();
+          againstTele = againstTele.view().map(param -> param.subst(subst)).toSeq().view();
           last = last.subst(subst);
         } else {
           if (iter.hasNext()) {
