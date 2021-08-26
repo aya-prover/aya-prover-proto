@@ -7,8 +7,8 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple2;
 import org.aya.core.def.Def;
-import org.aya.truffle.node.AyaRootNode;
 import org.aya.truffle.node.AyaNode;
+import org.aya.truffle.node.AyaRootNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +33,7 @@ public final class AyaTruffleLanguage extends TruffleLanguage<Void> {
     var nodes = slotWithDefs.view()
       .<AyaNode>map(x -> transpiler.transpileDef(x._1, x._2))
       .appended(new AyaNode.FrameGetterNode())
-      .toImmutableSeq().toArray(AyaNode.class);
+      .toArray(AyaNode.class);
     var rootNode = AyaRootNode.create(global, nodes)
       .createDirectCallNode();
     var frame = (MaterializedFrame) rootNode.call();
