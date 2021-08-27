@@ -9,6 +9,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
+import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import kala.tuple.Unit;
 import org.aya.api.ref.LocalVar;
@@ -47,7 +48,7 @@ public record Transpiler(@NotNull Telescope telescope) implements Term.Visitor<U
         matching -> this.buildMatchingFn(slot, fn.telescope, matching));
       case StructDef struct -> new DeclNode(slot,
         StructDeclNode.create(this,
-          struct.fields.map(x -> new Tuple2<>(x.ref, x.body))));
+          struct.fields.map(x -> Tuple.of(x.ref, x.body))));
       case DataDef data -> new DeclNode(slot, AyaNode.ErasedNode.create());
       case null, default -> throw new IllegalArgumentException("def can't be null.");
     };

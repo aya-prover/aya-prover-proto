@@ -5,7 +5,7 @@ package org.aya.truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import kala.collection.immutable.ImmutableSeq;
-import kala.tuple.Tuple2;
+import kala.tuple.Tuple;
 import org.aya.core.def.Def;
 import org.aya.truffle.node.AyaNode;
 import org.aya.truffle.node.AyaRootNode;
@@ -29,7 +29,8 @@ public final class AyaTruffleLanguage extends TruffleLanguage<Void> {
   public @NotNull Context runDefs(@NotNull ImmutableSeq<Def> defs) {
     var global = new Telescope(this);
     var transpiler = new Transpiler(global);
-    var slotWithDefs = defs.map(def -> new Tuple2<>(global.add(def.ref()), def));
+    // global.add() has side effects, don't merge it with the next line.
+    var slotWithDefs = defs.map(def -> Tuple.of(global.add(def.ref()), def));
     var nodes = slotWithDefs.view()
       .<AyaNode>map(x -> transpiler.transpileDef(x._1, x._2))
       .appended(new AyaNode.FrameGetterNode())
