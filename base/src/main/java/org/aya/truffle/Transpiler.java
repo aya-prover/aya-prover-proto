@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
+import static org.aya.util.Constants.ANONYMOUS_PREFIX;
+
 /**
  * @author zaoqi
  */
@@ -151,10 +153,10 @@ public record Transpiler(@NotNull Telescope telescope) implements Term.Visitor<U
         var len = ctor.params().size();
         assert len == data.ctors()[tag];
         // TODO: rewrite this hackish code
-        var ids = ctor.params().view().map(GenVar::createFromObject).prepended(ctor.as() == null ? GenVar.create() : ctor.as()).toImmutableSeq();
+        var ids = ctor.params().view().map(ignored -> new LocalVar(ANONYMOUS_PREFIX)).prepended(ctor.as() == null ? new LocalVar(ANONYMOUS_PREFIX) : ctor.as()).toImmutableSeq();
         var placeholder = new ErrorTerm(new Doc.Empty(), true);
         Function<Transpiler, AyaNode> continuation = b -> b.matching(ids.<Term>map(x -> new RefTerm(x, placeholder)).view(),
-          ctor.params().prepended(new Pat.Bind(true, ctor.as() == null ? GenVar.create() : ctor.as(), placeholder)).view(),
+          ctor.params().prepended(new Pat.Bind(true, ctor.as() == null ? new LocalVar(ANONYMOUS_PREFIX) : ctor.as(), placeholder)).view(),
           body, otherwise);
         return new AyaNode.PatCtorNode(self.transpile(of), tag, len, new IntroNode.Function(self, ids.toArray(Var.class), continuation), otherwise.apply(self));
       }
