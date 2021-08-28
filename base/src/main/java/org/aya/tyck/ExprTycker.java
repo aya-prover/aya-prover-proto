@@ -7,6 +7,7 @@ import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.Buffer;
 import kala.collection.mutable.MutableMap;
+import kala.control.Either;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import kala.tuple.Tuple3;
@@ -126,8 +127,23 @@ public class ExprTycker implements Expr.BaseVisitor<Term, ExprTycker.Result> {
   }
 
   private static boolean needImplicitParamIns(@NotNull Expr expr, @NotNull FormTerm.Pi type) {
-    return !type.param().explicit()
-      && (expr instanceof Expr.LamExpr ex && ex.param().explicit()
+    if (type.param().explicit()) return false;
+    if (expr instanceof Expr.RefExpr ref) {
+      var var = ref.resolvedVar();
+      if (var instanceof DefVar<?, ?> defVar) {
+        if (defVar.core instanceof FnDef fndef) {
+          if (fndef.telescope.isNotEmpty()) return fndef.telescope.get(0).explicit();
+          else if (fndef.result instanceof FormTerm.Pi pi)
+            return pi.param().explicit();
+        }
+        if (defVar.concrete instanceof Decl.FnDecl fndecl) {
+          if (fndecl.telescope.isNotEmpty()) return fndecl.telescope.get(0).explicit();
+          else if (fndecl.result instanceof Expr.PiExpr pi)
+            return pi.param().explicit();
+        }
+      }
+    }
+    return (expr instanceof Expr.LamExpr ex && ex.param().explicit()
       || !(expr instanceof Expr.LamExpr));
   }
 
