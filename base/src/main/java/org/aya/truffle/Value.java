@@ -18,7 +18,7 @@ public sealed interface Value {
     private Erased() {
     }
 
-    public final static @NotNull Value.Erased INSTANCE = new Erased();
+    public final static @NotNull Erased INSTANCE = new Erased();
   }
 
   record Fn(@NotNull DirectCallNode callTarget, @NotNull MaterializedFrame frame) implements Value {
@@ -52,5 +52,22 @@ public sealed interface Value {
   }
 
   record Tup(Value @NotNull [] arr) implements Value {
+  }
+
+  sealed interface I extends Value {
+  }
+
+  final class Left implements I {
+    private Left() {
+    }
+
+    public final static @NotNull Left INSTANCE = new Left();
+  }
+
+  final class Right implements I {
+    private Right() {
+    }
+
+    public final static @NotNull Right INSTANCE = new Right();
   }
 }

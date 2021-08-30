@@ -169,6 +169,24 @@ public abstract class AyaNode extends Node {
     }
   }
 
+  public static final class LiteralNode extends AyaNode {
+    private final @NotNull Value value;
+
+    public LiteralNode(@NotNull Value value) {
+      this.value = value;
+    }
+
+    @Override
+    public @NotNull Object execute(@NotNull VirtualFrame frame) {
+      return value;
+    }
+
+    @Override
+    public @NotNull Value executeValue(@NotNull VirtualFrame frame) {
+      return value;
+    }
+  }
+
   public static final class FrameGetterNode extends AyaNode {
     @Override
     public @NotNull Object execute(@NotNull VirtualFrame frame) {

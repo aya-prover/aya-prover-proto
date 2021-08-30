@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
+import static org.aya.core.def.PrimDef.*;
 import static org.aya.util.Constants.ANONYMOUS_PREFIX;
 
 /**
@@ -229,7 +230,12 @@ public record Transpiler(@NotNull Telescope telescope) implements Term.Visitor<U
 
   @Override
   public @NotNull AyaNode visitPrimCall(CallTerm.@NotNull Prim prim, Unit unit) {
-    throw new UnsupportedOperationException(); // TODO
+    return switch (prim.ref().name()) {
+      case LEFT -> new AyaNode.LiteralNode(Value.Left.INSTANCE);
+      case RIGHT -> new AyaNode.LiteralNode(Value.Right.INSTANCE);
+      case INTERVAL -> AyaNode.ErasedNode.create();
+      default -> throw new UnsupportedOperationException("TODO");
+    };
   }
 
   @Override
