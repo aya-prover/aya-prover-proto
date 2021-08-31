@@ -2,24 +2,26 @@
 // Use of this source code is governed by the GNU GPLv3 license that can be found in the LICENSE file.
 package org.aya.truffle;
 
+import kala.collection.immutable.ImmutableMap;
+import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple;
+import org.aya.api.ref.LocalVar;
 import org.aya.api.ref.Var;
-import org.aya.core.def.FieldDef;
 import org.aya.core.def.StructDef;
+import org.aya.core.term.Term;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author zaoqi
  */
-public record StructCompileTime(@NotNull Var name, @NotNull Map<Var, Integer> map, Var @NotNull [] fields) {
+public record StructCompileTime(@NotNull Var name,
+                                @NotNull ImmutableMap<Var, Integer> map,
+                                @NotNull ImmutableMap<Integer, Var> fields,
+                                @NotNull ImmutableMap<Integer, ImmutableSeq<Term.Param>> selfTeles) {
   public static @NotNull StructCompileTime create(@NotNull StructDef def) {
     return new StructCompileTime(def.ref(),
-      def.fields
-        .mapIndexed((i, f) -> Tuple.of(f.ref(), i))
-        .collect(Collectors.toMap(x -> x.component1(), x -> x.component2())),
-      def.fields.map(FieldDef::ref).toArray(Var.class));
+      def.fields.mapIndexed((i, f) -> Tuple.of(f.ref(), i)).toImmutableMap(),
+      def.fields.mapIndexed((i, f) -> Tuple.of(i, f.ref())).toImmutableMap(),
+      def.fields.mapIndexed((i, f) -> Tuple.of(i, f.selfTele)).toImmutableMap());
   }
 }

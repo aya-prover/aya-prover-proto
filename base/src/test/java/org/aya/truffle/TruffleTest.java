@@ -46,4 +46,24 @@ public class TruffleTest {
     assertTrue(map.get("overlap") instanceof Value.Fn);
     assertTrue(map.get("overlap2") instanceof Value.Fn);
   }
+
+  @Test
+  public void I() {
+    var defs = TyckDeclTest.successTyckDecls("""
+      prim I
+      prim left
+      prim right
+      struct Path (A : I -> Type) (a : A left) (b : A right) : Type
+       | at (i : I) : A i {
+         | left => a
+         | right => b
+       }
+      def path {A : I -> Type} (p : Pi (i : I) -> A i)
+        => new Path A (p left) (p right) { | at i => p i }
+      def `=` Eq {A : Type} (a b : A) : Type => Path (\\ i => A) a b
+      def idp {A : Type} (a : A) : a = a => path (\\ i => a)""");
+    var lang = new AyaTruffleLanguage();
+    var context = lang.runDefs(defs);
+    var map = context.toStrMap();
+  }
 }
