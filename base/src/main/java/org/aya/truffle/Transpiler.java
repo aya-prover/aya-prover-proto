@@ -50,8 +50,7 @@ public record Transpiler(@NotNull Telescope telescope) implements Term.Visitor<U
       case FnDef fn -> fn.body.fold(term -> this.buildTermFn(slot, fn.telescope.map(Term.Param::ref), b -> b.transpile(term)),
         matching -> this.buildMatchingFn(slot, fn.telescope, matching));
       case StructDef struct -> new DeclNode(slot,
-        StructDeclNode.create(this,
-          struct.fields.map(x -> Tuple.of(x.ref, x.body))));
+        StructDeclNode.create(this, StructCompileTime.create(struct)));
       case DataDef data -> new DeclNode(slot, AyaNode.ErasedNode.create());
       case null, default -> throw new IllegalArgumentException("def can't be null.");
     };
@@ -64,15 +63,19 @@ public record Transpiler(@NotNull Telescope telescope) implements Term.Visitor<U
       this.nodes = nodes;
     }
 
-    private static @NotNull DirectCallNode createField(@NotNull Transpiler recurseTranspiler, Var @NotNull [] fields, @NotNull Term body) {
+    private static @NotNull DirectCallNode createField(@NotNull Transpiler recurseTranspiler,
+                                                       Var @NotNull [] fields,
+                                                       @NotNull StructCompileTime struct,
+                                                       @NotNull FieldDef field) {
       var transpiler = recurseTranspiler.sub();
       FrameSlot[] argsSlot = AyaRootNode.createFrameSlotArr(transpiler.telescope(), fields);
+      var body = StructCompileTime.addSelfTele(field.selfTele, field.body.get());
       return AyaRootNode.create(transpiler.telescope(), argsSlot, new AyaNode[]{transpiler.transpile(body)}).createDirectCallNode();
     }
 
-    public static @NotNull StructDeclNode create(@NotNull Transpiler recurseTranspiler, @NotNull ImmutableSeq<Tuple2<Var, Option<Term>>> fields) {
-      var fieldNames = fields.map(x -> x._1).toArray(Var.class);
-      var nodes = fields.map(x -> x._2.isDefined() ? createField(recurseTranspiler, fieldNames, x._2.get()) : null);
+    public static @NotNull StructDeclNode create(@NotNull Transpiler recurseTranspiler, @NotNull StructCompileTime struct) {
+      var fieldNames = struct.field().map(FieldDef::ref).toArray(Var.class);
+      var nodes = struct.field().map(x -> x.body.isDefined() ? createField(recurseTranspiler, fieldNames, struct, x) : null);
       return new StructDeclNode(nodes.toArray(DirectCallNode.class));
     }
 

@@ -83,19 +83,11 @@ public sealed abstract class IntroNode extends AyaNode {
       var struct = StructCompileTime.create(Objects.requireNonNull(term.struct().ref().core));
       this.of = new RefNode(recurseTranspiler.telescope().get(term.struct().ref()));
       var params = new AyaNode[struct.map().size()];
-      assert struct.map().size() == struct.fields().size();
+      assert struct.map().size() == struct.field().size();
       term.params().iterator().forEach((v, x) -> {
         int id = struct.map().get(v);
-        var selfTele = struct.selfTeles().get(id);
-        if (selfTele.isEmpty()) {
-          params[id] = recurseTranspiler.transpile(x);
-        } else {
-          var exp = x;
-          for (var e : selfTele.reversed()) {
-            exp = new IntroTerm.Lambda(e, exp);
-          }
-          params[id] = recurseTranspiler.transpile(exp);
-        }
+        var selfTele = struct.field().get(id).selfTele;
+        params[id] = recurseTranspiler.transpile(StructCompileTime.addSelfTele(selfTele,x));
       });
       this.params = params;
     }
