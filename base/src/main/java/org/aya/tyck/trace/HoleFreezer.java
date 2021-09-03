@@ -3,6 +3,8 @@
 package org.aya.tyck.trace;
 
 import kala.tuple.Unit;
+import org.aya.api.distill.AyaDocile;
+import org.aya.api.distill.DistillerOptions;
 import org.aya.core.sort.Sort;
 import org.aya.core.term.CallTerm;
 import org.aya.core.term.ErrorTerm;
@@ -24,6 +26,12 @@ public record HoleFreezer(@Nullable LevelEqnSet eqnSet) implements TermFixpoint<
   @Override public @NotNull Term visitHole(CallTerm.@NotNull Hole term, Unit unit) {
     var solution = term.ref().core().body;
     if (solution == null) return new ErrorTerm(Doc.plain("{??}"), false);
-    return new ErrorTerm(options -> Doc.wrap("{?", "?}", solution.toDoc(options)), false);
+    return new ErrorTerm(new HoledTerm(solution), false);
+  }
+
+  public record HoledTerm(@NotNull Term term) implements AyaDocile {
+    @Override public @NotNull Doc toDoc(@NotNull DistillerOptions options) {
+      return Doc.wrap("{?", "?}", term.toDoc(options));
+    }
   }
 }

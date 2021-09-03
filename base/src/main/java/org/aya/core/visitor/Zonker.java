@@ -13,6 +13,7 @@ import org.aya.core.term.Term;
 import org.aya.pretty.doc.Doc;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.error.LevelMismatchError;
+import org.aya.tyck.trace.HoleFreezer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +41,15 @@ public final class Zonker implements TermFixpoint<Unit> {
     @Override public @NotNull Term visitHole(CallTerm.@NotNull Hole term, Unit unit) {
       var sol = term.ref().core();
       return sol.body != null ? sol.body.accept(this, Unit.unit()) : term;
+    }
+
+    @Override public @NotNull ErrorTerm visitError(@NotNull ErrorTerm term, Unit unit) {
+      return switch (term.description()) {
+        case Term inner -> new ErrorTerm(inner.accept(this, unit), term.isReallyError());
+        case HoleFreezer.HoledTerm inner -> new ErrorTerm(inner.term().accept(this, unit),
+          term.isReallyError());
+        default -> term;
+      };
     }
   }
 

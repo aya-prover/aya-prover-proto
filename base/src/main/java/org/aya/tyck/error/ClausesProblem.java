@@ -5,12 +5,14 @@ package org.aya.tyck.error;
 import kala.collection.Seq;
 import kala.collection.SeqLike;
 import kala.collection.immutable.ImmutableSeq;
+import kala.tuple.Unit;
 import org.aya.api.distill.DistillerOptions;
 import org.aya.api.error.Problem;
 import org.aya.api.error.SourcePos;
 import org.aya.api.util.WithPos;
 import org.aya.core.pat.Pat;
 import org.aya.core.term.Term;
+import org.aya.core.visitor.Zonker;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Style;
 import org.aya.tyck.pat.PatTree;
@@ -23,7 +25,8 @@ public sealed interface ClausesProblem extends Problem {
   }
 
   private static @NotNull Doc termToHint(@Nullable Term term) {
-    return term == null ? Doc.empty() : Doc.sep(Doc.plain("substituted to"), Doc.styled(Style.code(), term.toDoc(DistillerOptions.DEFAULT)));
+    return term == null ? Doc.empty() : Doc.sep(Doc.plain("substituted to"),
+      Doc.styled(Style.code(), term.accept(Zonker.NO_REPORT, Unit.unit()).toDoc(DistillerOptions.DEFAULT)));
   }
 
   record Conditions(
