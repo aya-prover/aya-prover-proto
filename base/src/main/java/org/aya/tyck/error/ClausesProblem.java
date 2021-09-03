@@ -39,9 +39,9 @@ public sealed interface ClausesProblem extends Problem {
     @Override public @NotNull Doc describe() {
       var result = rhs != null ? Doc.sep(
         Doc.plain("unify"),
-        Doc.styled(Style.code(), lhs.toDoc(DistillerOptions.DEFAULT)),
+        Doc.styled(Style.code(), lhs.accept(Zonker.NO_REPORT, Unit.unit()).toDoc(DistillerOptions.DEFAULT)),
         Doc.plain("and"),
-        Doc.styled(Style.code(), rhs.toDoc(DistillerOptions.DEFAULT))
+        Doc.styled(Style.code(), rhs.accept(Zonker.NO_REPORT, Unit.unit()).toDoc(DistillerOptions.DEFAULT))
       ) : Doc.english("even reduce one of the clause(s) to check condition");
       return Doc.sep(
         Doc.plain("The"),
@@ -74,9 +74,9 @@ public sealed interface ClausesProblem extends Problem {
         Doc.english("and the"),
         Doc.ordinal(j),
         Doc.english("clauses are not confluent because we failed to unify"),
-        Doc.styled(Style.code(), lhs.toDoc(DistillerOptions.DEFAULT)),
+        Doc.styled(Style.code(), lhs.accept(Zonker.NO_REPORT, Unit.unit()).toDoc(DistillerOptions.DEFAULT)),
         Doc.plain("and"),
-        Doc.styled(Style.code(), rhs.toDoc(DistillerOptions.DEFAULT))
+        Doc.styled(Style.code(), rhs.accept(Zonker.NO_REPORT, Unit.unit()).toDoc(DistillerOptions.DEFAULT))
       );
     }
 
