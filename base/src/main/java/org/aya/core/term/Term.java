@@ -40,19 +40,14 @@ import org.jetbrains.annotations.TestOnly;
  */
 public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, FormTerm, IntroTerm, RefTerm, ErrorTerm {
   <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p);
-  <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q);
+
   default <P, R> R accept(@NotNull Visitor<P, R> visitor, P p) {
     visitor.traceEntrance(this, p);
     var ret = doAccept(visitor, p);
     visitor.traceExit(ret);
     return ret;
   }
-  default <P, Q, R> R accept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-    visitor.traceEntrance(this, p, q);
-    var ret = doAccept(visitor, p, q);
-    visitor.traceExit(ret);
-    return ret;
-  }
+
   @Override default @Nullable Pat toPat() {
     return accept(TermToPat.INSTANCE, Unit.unit());
   }
@@ -131,14 +126,6 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, FormTe
     R visitAccess(@NotNull CallTerm.Access term, P p);
     R visitHole(@NotNull CallTerm.Hole term, P p);
     R visitError(@NotNull ErrorTerm term, P p);
-  }
-
-  interface BiVisitor<P, Q, R> {
-    default void traceEntrance(@NotNull Term term, P p, Q q) {
-    }
-    default void traceExit(R r) {
-    }
-    R visit(@NotNull Object o, P p, Q q);
   }
 
   /**
