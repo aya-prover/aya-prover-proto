@@ -138,23 +138,7 @@ public sealed interface Term extends CoreTerm permits CallTerm, ElimTerm, FormTe
     }
     default void traceExit(R r) {
     }
-    R visitRef(@NotNull RefTerm term, P p, Q q);
-    R visitLam(@NotNull IntroTerm.Lambda term, P p, Q q);
-    R visitPi(@NotNull FormTerm.Pi term, P p, Q q);
-    R visitSigma(@NotNull FormTerm.Sigma term, P p, Q q);
-    R visitUniv(@NotNull FormTerm.Univ term, P p, Q q);
-    R visitApp(@NotNull ElimTerm.App term, P p, Q q);
-    R visitFnCall(CallTerm.@NotNull Fn fnCall, P p, Q q);
-    R visitDataCall(CallTerm.@NotNull Data dataCall, P p, Q q);
-    R visitConCall(CallTerm.@NotNull Con conCall, P p, Q q);
-    R visitStructCall(CallTerm.@NotNull Struct structCall, P p, Q q);
-    R visitPrimCall(@NotNull CallTerm.Prim prim, P p, Q q);
-    R visitTup(@NotNull IntroTerm.Tuple term, P p, Q q);
-    R visitNew(@NotNull IntroTerm.New newTerm, P p, Q q);
-    R visitProj(@NotNull ElimTerm.Proj term, P p, Q q);
-    R visitAccess(@NotNull CallTerm.Access term, P p, Q q);
-    R visitHole(@NotNull CallTerm.Hole term, P p, Q q);
-    R visitError(@NotNull ErrorTerm term, P p, Q q);
+    R visit(@NotNull Object o, P p, Q q);
   }
 
   /**
