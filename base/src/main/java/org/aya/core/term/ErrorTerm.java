@@ -32,7 +32,7 @@ public record ErrorTerm(@NotNull AyaDocile description, boolean isReallyError) i
   }
 
   @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-    return visitor.visitError(this, p, q);
+    return visitor.visit(this, p, q);
   }
 
   public static @NotNull ErrorTerm typeOf(@NotNull Term origin) {

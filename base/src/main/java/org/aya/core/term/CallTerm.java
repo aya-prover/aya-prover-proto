@@ -59,7 +59,7 @@ public sealed interface CallTerm extends Term {
     }
 
     @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-      return visitor.visitFnCall(this, p, q);
+      return visitor.visit(this, p, q);
     }
 
   }
@@ -74,7 +74,7 @@ public sealed interface CallTerm extends Term {
     }
 
     @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-      return visitor.visitPrimCall(this, p, q);
+      return visitor.visit(this, p, q);
     }
 
   }
@@ -89,7 +89,7 @@ public sealed interface CallTerm extends Term {
     }
 
     @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-      return visitor.visitDataCall(this, p, q);
+      return visitor.visit(this, p, q);
     }
 
     public @NotNull ConHead conHead(@NotNull DefVar<CtorDef, Decl.DataCtor> ctorRef) {
@@ -110,7 +110,7 @@ public sealed interface CallTerm extends Term {
     }
 
     @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-      return visitor.visitStructCall(this, p, q);
+      return visitor.visit(this, p, q);
     }
 
   }
@@ -153,7 +153,7 @@ public sealed interface CallTerm extends Term {
     }
 
     @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-      return visitor.visitConCall(this, p, q);
+      return visitor.visit(this, p, q);
     }
 
     @Override public @NotNull ImmutableSeq<Arg<@NotNull Term>> args() {
@@ -183,7 +183,7 @@ public sealed interface CallTerm extends Term {
     }
 
     @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-      return visitor.visitHole(this, p, q);
+      return visitor.visit(this, p, q);
     }
 
     @Override public @NotNull ImmutableSeq<@NotNull Sort> sortArgs() {
@@ -206,7 +206,7 @@ public sealed interface CallTerm extends Term {
     }
 
     @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-      return visitor.visitAccess(this, p, q);
+      return visitor.visit(this, p, q);
     }
 
     @Override public @NotNull ImmutableSeq<@NotNull Arg<Term>> args() {
