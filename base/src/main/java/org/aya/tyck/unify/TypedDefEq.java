@@ -196,81 +196,6 @@ public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull 
     }
   }
 
-  // @Override public @NotNull Boolean visitRef(@NotNull RefTerm type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // @Override public @NotNull Boolean visitLam(@NotNull IntroTerm.Lambda type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   throw new IllegalStateException("LamTerm can never be a type of any term");
-  // }
-  //
-  // @Override public @NotNull Boolean visitUniv(@NotNull FormTerm.Univ type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // @Override public @NotNull Boolean visitApp(@NotNull ElimTerm.App type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // @Override public @NotNull Boolean visitFnCall(@NotNull CallTerm.Fn type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // @Override public @NotNull Boolean visitDataCall(@NotNull CallTerm.Data type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // @Override
-  // public @NotNull Boolean visitStructCall(@NotNull CallTerm.Struct type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   var fieldSigs = type.ref().core.fields;
-  //   var paramSubst = type.ref().core.telescope().view().zip(type.args().view()).map(x ->
-  //     Tuple2.of(x._1.ref(), x._2.term())).<Var, Term>toImmutableMap();
-  //   var fieldSubst = new Substituter.TermSubst(MutableHashMap.of());
-  //   for (var fieldSig : fieldSigs) {
-  //     var dummyVars = fieldSig.selfTele.map(par ->
-  //       new LocalVar(par.ref().name(), par.ref().definition()));
-  //     var dummy = dummyVars.zip(fieldSig.selfTele).map(vpa ->
-  //       new Arg<Term>(new RefTerm(vpa._1, vpa._2.type()), vpa._2.explicit()));
-  //     var l = new CallTerm.Access(lhs, fieldSig.ref(), type.sortArgs(), type.args(), dummy);
-  //     var r = new CallTerm.Access(rhs, fieldSig.ref(), type.sortArgs(), type.args(), dummy);
-  //     fieldSubst.add(fieldSig.ref(), l);
-  //     if (!compare(l, r, fieldSig.result().subst(paramSubst).subst(fieldSubst))) return false;
-  //   }
-  //   return true;
-  // }
-  //
-  // @Override public @NotNull Boolean visitPrimCall(CallTerm.@NotNull Prim type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // public @NotNull Boolean visitConCall(@NotNull CallTerm.Con type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   throw new IllegalStateException("ConCall can never be a type of any term");
-  // }
-  //
-  // @Override public @NotNull Boolean visitTup(@NotNull IntroTerm.Tuple type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   throw new IllegalStateException("TupTerm can never be a type of any term");
-  // }
-  //
-  // @Override public @NotNull Boolean visitNew(@NotNull IntroTerm.New newTerm, @NotNull Term term, @NotNull Term term2) {
-  //   throw new IllegalStateException("NewTerm can never be a type of any term");
-  // }
-  //
-  // @Override public @NotNull Boolean visitProj(@NotNull ElimTerm.Proj type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // @Override public @NotNull Boolean visitAccess(@NotNull CallTerm.Access type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // @Override public @NotNull Boolean visitHole(CallTerm.@NotNull Hole type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   return termDefeq.compare(lhs, rhs) != null;
-  // }
-  //
-  // @Override public @NotNull Boolean visitError(@NotNull ErrorTerm term, @NotNull Term term2, @NotNull Term term3) {
-  //   return true;
-  // }
-
   /**
    * @apiNote this ignores {@link Arg#explicit()}
    */
@@ -290,23 +215,4 @@ public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull 
     }
     return true;
   }
-
-  // @Override public @NotNull Boolean visitPi(@NotNull FormTerm.Pi type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   var dummyVar = new LocalVar("dummy");
-  //   var ty = type.param().type();
-  //   var dummy = new RefTerm(dummyVar, ty);
-  //   var dummyArg = new Arg<Term>(dummy, type.param().explicit());
-  //   return compare(CallTerm.make(lhs, dummyArg), CallTerm.make(rhs, dummyArg), type.substBody(dummy));
-  // }
-  //
-  // @Override public @NotNull Boolean visitSigma(@NotNull FormTerm.Sigma type, @NotNull Term lhs, @NotNull Term rhs) {
-  //   var params = type.params().view();
-  //   for (int i = 1, size = type.params().size(); i <= size; i++) {
-  //     var l = new ElimTerm.Proj(lhs, i);
-  //     var currentParam = params.first();
-  //     if (!compare(l, new ElimTerm.Proj(rhs, i), currentParam.type())) return false;
-  //     params = params.drop(1).map(x -> x.subst(currentParam.ref(), l));
-  //   }
-  //   return true;
-  // }
 }
