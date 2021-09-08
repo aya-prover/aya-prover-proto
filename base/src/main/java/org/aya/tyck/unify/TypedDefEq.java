@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  * @implNote Do not call <code>expr.accept(this, bla)</code> directly.
  * Instead, invoke {@link TypedDefEq#compare(Term, Term, Term)} to do so.
  */
-public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull Term, @NotNull Boolean> {
+public final class TypedDefEq {
   final @NotNull MutableMap<@NotNull LocalVar, @NotNull RefTerm> varSubst = new MutableHashMap<>();
   private final @Nullable Trace.Builder traceBuilder;
   public final @NotNull UntypedDefEq termDefeq;
@@ -47,12 +47,15 @@ public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull 
     tracing(builder -> builder.shift(trace));
   }
 
-  @Override public void traceEntrance(@NotNull Term type, @NotNull Term lhs, @NotNull Term rhs) {
+  Boolean accept(Term type, Term rhs, Term lhs) {
     traceEntrance(new Trace.UnifyT(lhs.freezeHoles(levelEqns), rhs.freezeHoles(levelEqns),
       pos, type.freezeHoles(levelEqns)));
+    var ret = visit(type, rhs, lhs);
+    traceExit(ret);
+    return ret;
   }
 
-  @Override public void traceExit(@NotNull Boolean result) {
+  public void traceExit(@NotNull Boolean result) {
     tracing(Trace.Builder::reduce);
   }
 
@@ -77,8 +80,8 @@ public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull 
     lhs = lhs.normalize(NormalizeMode.WHNF);
     rhs = rhs.normalize(NormalizeMode.WHNF);
     if (termDefeq.compareApprox(lhs, rhs) != null) return true;
-    if (rhs instanceof CallTerm.Hole) return type.accept(this, rhs, lhs);
-    return type.accept(this, lhs, rhs);
+    if (rhs instanceof CallTerm.Hole) return accept(type, rhs, lhs);
+    return accept(type, lhs, rhs);
   }
 
   public static boolean isCall(@NotNull Term term) {
@@ -113,7 +116,7 @@ public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull 
       checkParams(l.view().drop(1), r.view().drop(1), fail, success));
   }
 
-  @Override public @NotNull Boolean visit(@NotNull Object o, @NotNull Term lhs, @NotNull Term rhs) {
+  public @NotNull Boolean visit(@NotNull Object o, @NotNull Term lhs, @NotNull Term rhs) {
     switch (o) {
       case RefTerm type -> {
         return termDefeq.compare(lhs, rhs) != null;
@@ -159,17 +162,13 @@ public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull 
         }
         return true;
       }
-      case IntroTerm.Lambda type ->
-        throw new IllegalStateException("LamTerm can never be a type of any term");
+      case IntroTerm.Lambda type -> throw new IllegalStateException("LamTerm can never be a type of any term");
 
-      case CallTerm.Con type ->
-        throw new IllegalStateException("ConCall can never be a type of any term");
+      case CallTerm.Con type -> throw new IllegalStateException("ConCall can never be a type of any term");
 
-      case IntroTerm.Tuple type ->
-        throw new IllegalStateException("TupTerm can never be a type of any term");
+      case IntroTerm.Tuple type -> throw new IllegalStateException("TupTerm can never be a type of any term");
 
-      case IntroTerm.New newTerm ->
-        throw new IllegalStateException("NewTerm can never be a type of any term");
+      case IntroTerm.New newTerm -> throw new IllegalStateException("NewTerm can never be a type of any term");
 
       case ErrorTerm term -> {
         return true;
@@ -191,8 +190,7 @@ public final class TypedDefEq implements Term.BiVisitor<@NotNull Term, @NotNull 
         var dummyArg = new Arg<Term>(dummy, type.param().explicit());
         return compare(CallTerm.make(lhs, dummyArg), CallTerm.make(rhs, dummyArg), type.substBody(dummy));
       }
-      default ->
-        throw new IllegalStateException("Pattern mismatch in TypedDefEq");
+      default -> throw new IllegalStateException("Pattern mismatch in TypedDefEq");
     }
   }
 
