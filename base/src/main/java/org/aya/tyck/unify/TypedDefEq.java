@@ -47,7 +47,7 @@ public final class TypedDefEq {
     tracing(builder -> builder.shift(trace));
   }
 
-  Boolean accept(Term type, Term rhs, Term lhs) {
+  boolean accept(Term type, @NotNull Term rhs, @NotNull Term lhs) {
     traceEntrance(new Trace.UnifyT(lhs.freezeHoles(levelEqns), rhs.freezeHoles(levelEqns),
       pos, type.freezeHoles(levelEqns)));
     var ret = visit(type, rhs, lhs);
@@ -55,7 +55,7 @@ public final class TypedDefEq {
     return ret;
   }
 
-  public void traceExit(@NotNull Boolean result) {
+  public void traceExit(boolean result) {
     tracing(Trace.Builder::reduce);
   }
 
@@ -116,7 +116,7 @@ public final class TypedDefEq {
       checkParams(l.view().drop(1), r.view().drop(1), fail, success));
   }
 
-  public @NotNull Boolean visit(@NotNull Object o, @NotNull Term lhs, @NotNull Term rhs) {
+  public boolean visit(@NotNull Object o, @NotNull Term lhs, @NotNull Term rhs) {
     switch (o) {
       case RefTerm type -> {
         return termDefeq.compare(lhs, rhs) != null;
