@@ -39,10 +39,6 @@ public sealed interface IntroTerm extends Term {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitNew(this, p);
     }
-
-    // @Override public <P, Q, R> R doAccept(@NotNull BiVisitor<P, Q, R> visitor, P p, Q q) {
-    //   return visitor.visit(this, p, q);
-    // }
   }
 
   /**
@@ -52,7 +48,5 @@ public sealed interface IntroTerm extends Term {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitTup(this, p);
     }
-
   }
-
 }

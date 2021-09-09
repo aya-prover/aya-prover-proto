@@ -12,5 +12,4 @@ public record RefTerm(@NotNull LocalVar var, @NotNull Term type) implements Term
   @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
     return visitor.visitRef(this, p);
   }
-
 }

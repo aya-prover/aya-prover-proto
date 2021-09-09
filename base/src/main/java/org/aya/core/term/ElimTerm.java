@@ -32,13 +32,11 @@ public sealed interface ElimTerm extends Term {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitProj(this, p);
     }
-
   }
 
   record App(@NotNull Term of, @NotNull Arg<@NotNull Term> arg) implements ElimTerm {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitApp(this, p);
     }
-
   }
 }

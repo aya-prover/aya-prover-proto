@@ -57,7 +57,6 @@ public sealed interface CallTerm extends Term {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitFnCall(this, p);
     }
-
   }
 
   record Prim(
@@ -68,7 +67,6 @@ public sealed interface CallTerm extends Term {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitPrimCall(this, p);
     }
-
   }
 
   record Data(
@@ -96,7 +94,6 @@ public sealed interface CallTerm extends Term {
     @Override public <P, R> R doAccept(@NotNull Visitor<P, R> visitor, P p) {
       return visitor.visitStructCall(this, p);
     }
-
   }
 
   record ConHead(
@@ -139,7 +136,6 @@ public sealed interface CallTerm extends Term {
     @Override public @NotNull ImmutableSeq<Arg<@NotNull Term>> args() {
       return head.dataArgs.view().concat(conArgs).toImmutableSeq();
     }
-
   }
 
   /**
@@ -181,11 +177,8 @@ public sealed interface CallTerm extends Term {
       return visitor.visitAccess(this, p);
     }
 
-
-
     @Override public @NotNull ImmutableSeq<@NotNull Arg<Term>> args() {
       return structArgs.concat(fieldArgs);
     }
-
   }
 }

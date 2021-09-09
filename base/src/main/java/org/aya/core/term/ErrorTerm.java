@@ -31,7 +31,6 @@ public record ErrorTerm(@NotNull AyaDocile description, boolean isReallyError) i
     return visitor.visitError(this, p);
   }
 
-
   public static @NotNull ErrorTerm typeOf(@NotNull Term origin) {
     return typeOf((AyaDocile) origin.freezeHoles(null));
   }

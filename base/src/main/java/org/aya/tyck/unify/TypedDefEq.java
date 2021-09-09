@@ -162,14 +162,14 @@ public final class TypedDefEq {
         }
         return true;
       }
-      case IntroTerm.Lambda type -> throw new IllegalStateException("LamTerm can never be a type of any term");
-
-      case CallTerm.Con type -> throw new IllegalStateException("ConCall can never be a type of any term");
-
-      case IntroTerm.Tuple type -> throw new IllegalStateException("TupTerm can never be a type of any term");
-
-      case IntroTerm.New newTerm -> throw new IllegalStateException("NewTerm can never be a type of any term");
-
+      case IntroTerm.Lambda type ->
+        throw new IllegalStateException("LamTerm can never be a type of any term");
+      case CallTerm.Con type ->
+        throw new IllegalStateException("ConCall can never be a type of any term");
+      case IntroTerm.Tuple type ->
+        throw new IllegalStateException("TupTerm can never be a type of any term");
+      case IntroTerm.New newTerm ->
+        throw new IllegalStateException("NewTerm can never be a type of any term");
       case ErrorTerm term -> {
         return true;
       }
