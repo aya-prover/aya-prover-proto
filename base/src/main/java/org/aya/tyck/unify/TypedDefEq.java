@@ -47,10 +47,10 @@ public final class TypedDefEq {
     tracing(builder -> builder.shift(trace));
   }
 
-  boolean accept(Term type, @NotNull Term rhs, @NotNull Term lhs) {
+  boolean accept(@NotNull Term type, @NotNull Term lhs, @NotNull Term rhs) {
     traceEntrance(new Trace.UnifyT(lhs.freezeHoles(levelEqns), rhs.freezeHoles(levelEqns),
       pos, type.freezeHoles(levelEqns)));
-    var ret = visit(type, rhs, lhs);
+    var ret = visit(type, lhs, rhs);
     traceExit(ret);
     return ret;
   }
