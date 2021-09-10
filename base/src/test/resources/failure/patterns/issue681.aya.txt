@@ -9,7 +9,7 @@ Error: There is no parameter for the pattern
          zero
        to match against, given the return type
          Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Eq {Nat} (add x (add y z)) (add
-        (add x y) z)
+         (add x y) z)
        (and in case it's a function type, you may want to move its parameters before
        the `:` in the signature)
 In file $FILE:32:10 ->
@@ -23,7 +23,7 @@ Error: There is no parameter for the pattern
          y
        to match against, given the return type
          Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Eq {Nat} (add x (add y z)) (add
-        (add x y) z)
+         (add x y) z)
        (and in case it's a function type, you may want to move its parameters before
        the `:` in the signature)
 In file $FILE:32:13 ->
@@ -37,7 +37,7 @@ Error: There is no parameter for the pattern
          z
        to match against, given the return type
          Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Eq {Nat} (add x (add y z)) (add
-        (add x y) z)
+         (add x y) z)
        (and in case it's a function type, you may want to move its parameters before
        the `:` in the signature)
 In file $FILE:32:18 ->
@@ -52,9 +52,9 @@ Error: Cannot check the expression of type
          (Normalized: Π (a : Nat) → Path (λ _ ⇒ Nat) a a)
        against the type
          Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Eq {Nat} (add x (add y z)) (add
-        (add x y) z)
+         (add x y) z)
          (Normalized: Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Path (λ i ⇒ Nat)
-        (add x (add y z)) (add (add x y) z))
+         (add x (add y z)) (add (add x y) z))
 In file $FILE:33:4 ->
 
   31 | def +-assoc : Pi (x y z : Nat) -> x + (y + z) = (x + y) + z
@@ -66,7 +66,7 @@ Error: There is no parameter for the pattern
          suc x
        to match against, given the return type
          Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Eq {Nat} (add x (add y z)) (add
-        (add x y) z)
+         (add x y) z)
        (and in case it's a function type, you may want to move its parameters before
        the `:` in the signature)
 In file $FILE:33:11 ->
@@ -80,7 +80,7 @@ Error: There is no parameter for the pattern
          y
        to match against, given the return type
          Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Eq {Nat} (add x (add y z)) (add
-        (add x y) z)
+         (add x y) z)
        (and in case it's a function type, you may want to move its parameters before
        the `:` in the signature)
 In file $FILE:33:14 ->
@@ -94,7 +94,7 @@ Error: There is no parameter for the pattern
          z
        to match against, given the return type
          Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Eq {Nat} (add x (add y z)) (add
-        (add x y) z)
+         (add x y) z)
        (and in case it's a function type, you may want to move its parameters before
        the `:` in the signature)
 In file $FILE:33:19 ->
@@ -107,12 +107,12 @@ In file $FILE:33:19 ->
 Error: Cannot check the expression of type
          Path (λ _ ⇒ Nat) (suc (+-assoc x y z.at left)) (suc (+-assoc x y z.at right))
          (Normalized: Path (λ _ ⇒ Nat) (suc (add x (add y z))) (suc (add (add x y)
-        z)))
+         z)))
        against the type
          Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Eq {Nat} (add x (add y z)) (add
-        (add x y) z)
+         (add x y) z)
          (Normalized: Π (x : Nat) → Π (y : Nat) → Π (z : Nat) → Path (λ i ⇒ Nat)
-        (add x (add y z)) (add (add x y) z))
+         (add x (add y z)) (add (add x y) z))
 In file $FILE:31:4 ->
 
   29 | bind + tighter =
@@ -128,5 +128,5 @@ Error: The 1st and the 2nd clauses are not confluent because we failed to unify
          <λ a ⇒ idp {Nat} a>
        and
          <pmap {Nat} {Nat} (λ _ ⇒ suc _) {add x (add y z)} {add (add x y) z} (+-assoc
-        x y z)>
+         x y z)>
 What are you doing?
