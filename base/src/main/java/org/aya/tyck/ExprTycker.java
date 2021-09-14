@@ -118,7 +118,7 @@ public final class ExprTycker {
           conFields = conFields.dropWhile(t -> t == conField);
           var type = Def.defResult(defField.ref()).subst(subst);
           var fieldSubst = new ExprRefSubst(reporter);
-          var telescope = defField.ref().core.selfTele;
+          var telescope = defField.ref().core.selfTele.map(term -> term.subst(subst));
           var bindings = conField.bindings();
           if (telescope.sizeLessThan(bindings.size())) {
             // TODO[ice]: number of args don't match
