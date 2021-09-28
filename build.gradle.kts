@@ -23,8 +23,9 @@ allprojects {
   version = deps.getProperty("version.project")
 }
 
+@kotlin.Suppress("unsupported")
 subprojects {
-  val useJacoco = name in listOf("base", "pretty")
+  val useJacoco = name in ["base", "pretty"]
 
   apply {
     plugin("java")
